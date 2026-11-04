@@ -304,7 +304,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) {
     int i, j, k;
 
     fprintf(f, "\n==================================================\n");
-    fprintf(f, "              PRECIFICAÇÃO DE CROCHÊ\n");
+    fprintf(f, "              PRECIFICAÇÃO DE AMIGURUMI\n");
     fprintf(f, "==================================================\n");
     fprintf(f, "Projeto : %s\n", p->nome[0] ? p->nome : "(sem nome)");
     fprintf(f, "Agulha  : %s\n", p->agulha[0] ? p->agulha : "(não informada)");
