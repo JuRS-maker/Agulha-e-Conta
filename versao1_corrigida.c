@@ -106,7 +106,7 @@ float lerNumero(const char *pergunta, float minimo) {
         for (int i = 0; buf[i] != '\0'; i++) // For normal
             if (buf[i] == ',' || buf[i] == '.') buf[i] = sep; // Procura onde está a vírgula ou o ponto e substitui pelo separador padrão do seu computador
 
-        valor = (float) strtod(buf, &fim); // Transforma em float e faz o *fim apontar para o último caractere (strtod não tem nos slides)
+        valor = (float) strtod(buf, &fim); // Transforma em float e faz o *fim apontar para o último caractere (strtod não tem nos slides) -> strtod: Transforma uma cadeia de caracteres em números do tipo double
         if (fim == buf || (*fim != '\n' && *fim != '\0')) {  // Verifica se o fim está apontando para um caractere válido
             printf("  Valor inválido. Digite apenas números.\n");
             continue;
