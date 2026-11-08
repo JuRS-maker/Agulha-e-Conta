@@ -191,7 +191,7 @@ typedef struct { /* nome, agulha, tamPontos, materiais[], partes[],
 
 ## 👩‍💻 Autoras
 
-- **[Nome da integrante 1]**
-- **[Nome da integrante 2]**
+- **Ana Vitória Bernardes de Aguiar**
+- **Júlia Ribeiro de Souza**
 
 Projeto final da disciplina de **Linguagem de Programação**, 2026.
