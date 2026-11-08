@@ -83,6 +83,7 @@ float precoFinal(const Projeto *p) { // Usa a função lucro para descobrir o pr
 /* ==========================================================
  *  FUNÇÕES AUXILIARES DE LEITURA
  * ========================================================== */
+//OBS.: buf(buffer) é um vetor temporário para guardar o que o usuário digitou antes de realizar as operações de transforação realizadas pelo sistema.
 
 void lerTexto(const char *pergunta, char *destino, int tam) { // Parâmetros são a pergunta, a variável onde a resposta vai ser armazenada e o tamanho máximo da resposta
     printf("%s", pergunta); // Faz a pergunta
@@ -128,6 +129,9 @@ int lerOpcao(const char *pergunta, int min, int max) {
         printf("%s", pergunta);
         if (fgets(buf, sizeof(buf), stdin) == NULL) return min; // Retorna valor mínimo de segurança se der erro
         v = strtol(buf, &fim, 10); // Tenta transformar em decimal (esse 10 significa literalmente decimal - strtol não tem nos slides)
+      // strtol converte o texto do 'buf' para número. 
+      // O '&fim' guarda onde a leitura parou (ajuda a testar se o usuário digitou lixo).
+      // O '10' força a conversão para a base decimal (números de 0 a 9).
         if (fim == buf || (*fim != '\n' && *fim != '\0') || v < min || v > max) { // Verificação rápida se o número é válido
             printf("  Opção inválida (%d a %d).\n", min, max);
             continue;
