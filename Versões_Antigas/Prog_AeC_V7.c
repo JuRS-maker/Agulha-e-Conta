@@ -1,39 +1,39 @@
 #include <stdio.h>
 #include <stdlib.h>   /* strtod() e strtol() */
 #include <string.h>
-#include <ctype.h>    /* tolower(): usada para comparar textos sem diferenciar maiúsculas/minúsculas (não consta nos slides) */
+#include <ctype.h>    /* tolower(): usada para comparar textos sem diferenciar maiÃºsculas/minÃºsculas (nÃ£o consta nos slides) */
 #include <locale.h>   /* Ajuste de idioma e separador decimal */
 #ifdef _WIN32
 #include <windows.h>  /* Configura o terminal do Windows para UTF-8 */
 #endif
 
 
-#define MAX_PROJETOS 50 // Máximo de projetos que o sistema guarda ao mesmo tempo
-#define MAX_MAT     30 // Máximo de materiais
-#define MAX_PARTES  10 // Máximo de partes
-#define MAX_PASSOS  30 // Máximo de carreiras por parte
-#define TAM_NOME    60 // Máximo de caracteres dos textos
-#define TAM_PASSO   200 // Tamanho máximo dos textos de cada instrução
+#define MAX_PROJETOS 50 // MÃ¡ximo de projetos que o sistema guarda ao mesmo tempo
+#define MAX_MAT     30 // MÃ¡ximo de materiais
+#define MAX_PARTES  10 // MÃ¡ximo de partes
+#define MAX_PASSOS  30 // MÃ¡ximo de carreiras por parte
+#define TAM_NOME    60 // MÃ¡ximo de caracteres dos textos
+#define TAM_PASSO   200 // Tamanho mÃ¡ximo dos textos de cada instruÃ§Ã£o
 
-#define ARQ_BINARIO "dados.bin"   /* Nome do arquivo de persistência (o usuário nunca vê esse nome) */
+#define ARQ_BINARIO "dados.bin"   /* Nome do arquivo de persistÃªncia (o usuÃ¡rio nunca vÃª esse nome) */
 
-#define UNIDADE 1      /* Simplificação da leitura do tipo de material */
+#define UNIDADE 1      /* SimplificaÃ§Ã£o da leitura do tipo de material */
 #define GRAMA   2
 
-typedef struct {    // Cria o tipo Material com as especificações do material usado
+typedef struct {    // Cria o tipo Material com as especificaÃ§Ãµes do material usado
     char  nome[TAM_NOME];
     char  marca[TAM_NOME];
     char  cor[TAM_NOME];
     int   tipo;          /* UNIDADE ou GRAMA            */
     float precoTotal;    /* quanto pagou no pacote/rolo */
     float qtdTotal;      /* quanto vem no pacote/rolo   */
-    float qtdUsada;      /* quanto usou na peça         */
+    float qtdUsada;      /* quanto usou na peÃ§a         */
 } Material;
 
 typedef struct { // Cria o tipo parte
     char nome[TAM_NOME];
     int  numPassos;
-    char passos[MAX_PASSOS][TAM_PASSO];   /* Matriz: cada linha é um passo */
+    char passos[MAX_PASSOS][TAM_PASSO];   /* Matriz: cada linha Ã© um passo */
 } Parte;
 
 typedef struct { // Projeto completo integrado com as structs que criamos acima
@@ -41,90 +41,90 @@ typedef struct { // Projeto completo integrado com as structs que criamos acima
     char     agulha[20];
     char     tamPontos[20];
     int      numMat;
-    Material materiais[MAX_MAT]; // Cria um vetor de variáveis do tipo Material
+    Material materiais[MAX_MAT]; // Cria um vetor de variÃ¡veis do tipo Material
     int      numPartes;
-    Parte    partes[MAX_PARTES]; // Cria um vetor de variáveis do tipo Parte
+    Parte    partes[MAX_PARTES]; // Cria um vetor de variÃ¡veis do tipo Parte
     float    horas;
     float    valorHora;
     float    lucroPct;
 } Projeto;
 
-/* IMPORTANTE (persistência): a struct Projeto NÃO tem nenhum ponteiro dentro dela,
-   apenas vetores de tamanho fixo, int e float. Por isso ela ocupa um bloco ÚNICO e contínuo
-   de memória, e podemos gravá-la inteira com UM fwrite e lê-la inteira com UM fread.
-   (Se houvesse char* dentro dela, gravaríamos só o endereço, e não o texto.) */
+/* IMPORTANTE (persistÃªncia): a struct Projeto NÃƒO tem nenhum ponteiro dentro dela,
+   apenas vetores de tamanho fixo, int e float. Por isso ela ocupa um bloco ÃšNICO e contÃ­nuo
+   de memÃ³ria, e podemos gravÃ¡-la inteira com UM fwrite e lÃª-la inteira com UM fread.
+   (Se houvesse char* dentro dela, gravarÃ­amos sÃ³ o endereÃ§o, e nÃ£o o texto.) */
 
 /* ---------------------------------------------------------------
- * MÚLTIPLOS PROJETOS: VETOR ESTÁTICO
+ * MÃšLTIPLOS PROJETOS: VETOR ESTÃTICO
  *
- * Existe um VETOR com MAX_PROJETOS (50) variáveis do tipo Projeto, uma colada na outra
- * na memória.
+ * Existe um VETOR com MAX_PROJETOS (50) variÃ¡veis do tipo Projeto, uma colada na outra
+ * na memÃ³ria.
  *
- * COMO A MEMÓRIA É ALOCADA:
- *   - Por ser variável GLOBAL, o vetor é alocado UMA VEZ, quando o programa começa, em
- *     uma área de memória fixa (área de dados estáticos), e vive até o programa acabar.
- *     Não usamos malloc: o tamanho é decidido em tempo de compilação.
+ * COMO A MEMÃ“RIA Ã‰ ALOCADA:
+ *   - Por ser variÃ¡vel GLOBAL, o vetor Ã© alocado UMA VEZ, quando o programa comeÃ§a, em
+ *     uma Ã¡rea de memÃ³ria fixa (Ã¡rea de dados estÃ¡ticos), e vive atÃ© o programa acabar.
+ *     NÃ£o usamos malloc: o tamanho Ã© decidido em tempo de compilaÃ§Ã£o.
  *   - Tamanho total = 50 x sizeof(Projeto) = cerca de 3,3 MB.
- *     Isso só é possível porque o vetor é GLOBAL: uma variável LOCAL desse tamanho
- *     estouraria a pilha (stack) da função.
- *   - Variáveis globais começam ZERADAS: todos os textos começam vazios ("\0") e todos
- *     os números começam com 0. Então um projeto ainda não usado já está "limpo".
+ *     Isso sÃ³ Ã© possÃ­vel porque o vetor Ã© GLOBAL: uma variÃ¡vel LOCAL desse tamanho
+ *     estouraria a pilha (stack) da funÃ§Ã£o.
+ *   - VariÃ¡veis globais comeÃ§am ZERADAS: todos os textos comeÃ§am vazios ("\0") e todos
+ *     os nÃºmeros comeÃ§am com 0. EntÃ£o um projeto ainda nÃ£o usado jÃ¡ estÃ¡ "limpo".
  *
- * COMO OS ÍNDICES FUNCIONAM:
- *   - O vetor tem 50 espaços, mas só os primeiros 'numProjetos' estão EM USO:
+ * COMO OS ÃNDICES FUNCIONAM:
+ *   - O vetor tem 50 espaÃ§os, mas sÃ³ os primeiros 'numProjetos' estÃ£o EM USO:
  *       projetos[0] ... projetos[numProjetos - 1]  -> projetos cadastrados
- *       projetos[numProjetos]                      -> PRÓXIMO espaço livre
- *   - Para mexer em um projeto, passamos o ENDEREÇO dele: &projetos[i]. As funções
- *     que recebem "Projeto *p" não sabem se esse projeto é o 0, o 7 ou o 49, só
- *     recebem o endereço de um Projeto.
+ *       projetos[numProjetos]                      -> PRÃ“XIMO espaÃ§o livre
+ *   - Para mexer em um projeto, passamos o ENDEREÃ‡O dele: &projetos[i]. As funÃ§Ãµes
+ *     que recebem "Projeto *p" nÃ£o sabem se esse projeto Ã© o 0, o 7 ou o 49, sÃ³
+ *     recebem o endereÃ§o de um Projeto.
  * --------------------------------------------------------------- */
 Projeto projetos[MAX_PROJETOS];
 int     numProjetos = 0;
 
-/* Projeto "em branco" (zerado, por ser global). É copiado para um espaço do vetor
-   antes de cadastrar um projeto novo, garantindo que nenhum lixo antigo fique lá. */
+/* Projeto "em branco" (zerado, por ser global). Ã‰ copiado para um espaÃ§o do vetor
+   antes de cadastrar um projeto novo, garantindo que nenhum lixo antigo fique lÃ¡. */
 Projeto projetoVazio;
 
 /* ==========================================================
- *  CÁLCULOS
+ *  CÃLCULOS
  * ========================================================== */
 
-float custoMaterial(const Material *m) { // Endereço de um Material que a função lê (a palavra 'const' não consta nos slides)
+float custoMaterial(const Material *m) { // EndereÃ§o de um Material que a funÃ§Ã£o lÃª (a palavra 'const' nÃ£o consta nos slides)
     return (m->precoTotal / m->qtdTotal) * m->qtdUsada; // Acessa o campo usando o ponteiro
 }
-/* Na parte a seguir do código, utilizaremos ponteiros com o const de forma que garanta a imutabilidade e segurança dos dados,
-além de apenas repassar as informações da struct projeto, sem repetir dados pesados na memória
- (A função entra, cria um ponteiro para as structs, aponta para o tópico que ela quer utilizar e faz as contas) */
+/* Na parte a seguir do cÃ³digo, utilizaremos ponteiros com o const de forma que garanta a imutabilidade e seguranÃ§a dos dados,
+alÃ©m de apenas repassar as informaÃ§Ãµes da struct projeto, sem repetir dados pesados na memÃ³ria
+ (A funÃ§Ã£o entra, cria um ponteiro para as structs, aponta para o tÃ³pico que ela quer utilizar e faz as contas) */
 
 
 float custoTotalMateriais(const Projeto *p) {
     int i;
     float soma = 0;
     for (i = 0; i < p->numMat; i++){
-      soma = custoMaterial(&p->materiais[i]) + soma;  // Passa o endereço do material
+      soma = custoMaterial(&p->materiais[i]) + soma;  // Passa o endereÃ§o do material
     }
     return soma;
 }
 
-float custoMaoDeObra(const Projeto *p) {  // Ex: cria função e coloca como parâmetro um ponteiro que aponta para a variável projeto
+float custoMaoDeObra(const Projeto *p) {  // Ex: cria funÃ§Ã£o e coloca como parÃ¢metro um ponteiro que aponta para a variÃ¡vel projeto
     return p->horas * p->valorHora;      // Retorna as horas vezes o valor da hora
 }
 
 float valorLucro(const Projeto *p) { // Calcula o lucro
-    return (custoTotalMateriais(p)+custoMaoDeObra(p)) * (p->lucroPct / 100); // Joga a variável projeto para as duas primeiras funções que fizemos e faz a conta
+    return (custoTotalMateriais(p)+custoMaoDeObra(p)) * (p->lucroPct / 100); // Joga a variÃ¡vel projeto para as duas primeiras funÃ§Ãµes que fizemos e faz a conta
 }
 
-float precoFinal(const Projeto *p) { // Usa a função lucro para descobrir o preço real final
+float precoFinal(const Projeto *p) { // Usa a funÃ§Ã£o lucro para descobrir o preÃ§o real final
     return custoTotalMateriais(p) + custoMaoDeObra (p) + valorLucro(p);
 }
 
 
 /* ==========================================================
- *  FUNÇÕES AUXILIARES DE LEITURA
+ *  FUNÃ‡Ã•ES AUXILIARES DE LEITURA
  * ========================================================== */
 
 /*
- * Lê texto do terminal e o armazena em UTF-8.
+ * LÃª texto do terminal e o armazena em UTF-8.
  * No Windows, o terminal recebe caracteres em Windows-1252 e converte
  * para UTF-8 antes de guardar nas structs e nos arquivos.
  */
@@ -172,36 +172,36 @@ void lerTexto(const char *pergunta, char *destino, int tam) {
 }
 
 /* ---------------------------------------------------------------
- * lerTextoObrigatorio: igual ao lerTexto, mas NÃO aceita texto vazio.
+ * lerTextoObrigatorio: igual ao lerTexto, mas NÃƒO aceita texto vazio.
  *
- * LÓGICA:
- *   - Fica dentro de um while(1): só sai (com return) quando o usuário digita pelo menos
- *     um caractere que não seja espaço. Caso contrário mostra o erro e repete a pergunta.
- *   - Se o usuário aperta só ENTER, o fgets grava "\n" em destino. Depois que o "\n" é
- *     trocado por '\0' (mesma técnica do lerTexto), a string fica vazia: destino[0] == '\0'.
- *   - Também recusa texto feito só de espaços ("   "): o laço for procura alguma letra
- *     que não seja espaço (isspace, da ctype.h, não consta nos slides).
+ * LÃ“GICA:
+ *   - Fica dentro de um while(1): sÃ³ sai (com return) quando o usuÃ¡rio digita pelo menos
+ *     um caractere que nÃ£o seja espaÃ§o. Caso contrÃ¡rio mostra o erro e repete a pergunta.
+ *   - Se o usuÃ¡rio aperta sÃ³ ENTER, o fgets grava "\n" em destino. Depois que o "\n" Ã©
+ *     trocado por '\0' (mesma tÃ©cnica do lerTexto), a string fica vazia: destino[0] == '\0'.
+ *   - TambÃ©m recusa texto feito sÃ³ de espaÃ§os ("   "): o laÃ§o for procura alguma letra
+ *     que nÃ£o seja espaÃ§o (isspace, da ctype.h, nÃ£o consta nos slides).
  *
- * PONTEIROS (passagem por referência):
- *   - 'destino' é o ENDEREÇO do vetor de char do chamador (ex.: p->nome). O fgets escreve
- *     os caracteres digitados DIRETO nesse endereço; por isso a função é void e mesmo
+ * PONTEIROS (passagem por referÃªncia):
+ *   - 'destino' Ã© o ENDEREÃ‡O do vetor de char do chamador (ex.: p->nome). O fgets escreve
+ *     os caracteres digitados DIRETO nesse endereÃ§o; por isso a funÃ§Ã£o Ã© void e mesmo
  *     assim o chamador recebe o texto.
- *   - 'pergunta' é const char *: a função só lê o texto da pergunta.
+ *   - 'pergunta' Ã© const char *: a funÃ§Ã£o sÃ³ lÃª o texto da pergunta.
  *
  * FIM DE ARQUIVO (EOF): se a entrada fechar (fgets devolve NULL), repetir a pergunta
- * seria um laço infinito. Nesse caso gravamos "Sem nome" com strcpy e saímos.
+ * seria um laÃ§o infinito. Nesse caso gravamos "Sem nome" com strcpy e saÃ­mos.
  * --------------------------------------------------------------- */
 void lerTextoObrigatorio(const char *pergunta, char *destino, int tam) {
     int i, temConteudo;
 
     while (1) {
         printf("%s", pergunta);
-        if (!lerLinhaUTF8(destino, tam)) { /* EOF: evita repetição infinita */
+        if (!lerLinhaUTF8(destino, tam)) { /* EOF: evita repetiÃ§Ã£o infinita */
             strcpy(destino, "Sem nome");
             return;
         }
         if (destino[0] == '\0') {
-            printf("  Este campo é obrigatório. Digite pelo menos uma letra.\n");
+            printf("  Este campo Ã© obrigatÃ³rio. Digite pelo menos uma letra.\n");
             continue;
         }
 
@@ -213,58 +213,58 @@ void lerTextoObrigatorio(const char *pergunta, char *destino, int tam) {
             }
         }
 
-        if (temConteudo) return;                     /* texto válido: sai do while */
-        printf("  Este campo é obrigatório. Digite pelo menos uma letra.\n");
+        if (temConteudo) return;                     /* texto vÃ¡lido: sai do while */
+        printf("  Este campo Ã© obrigatÃ³rio. Digite pelo menos uma letra.\n");
     }
 }
 
 float lerNumero(const char *pergunta, float minimo) {
-    char buf[64]; // Vetor temporário
+    char buf[64]; // Vetor temporÃ¡rio
     char *fim;
-    char sep = localeconv()->decimal_point[0]; // Chama a variável do locale.h para saber se usa um ponto ou uma vírgula para separar decimais (Não consta nos slides)
+    char sep = localeconv()->decimal_point[0]; // Chama a variÃ¡vel do locale.h para saber se usa um ponto ou uma vÃ­rgula para separar decimais (NÃ£o consta nos slides)
     float valor;
 
-    while (1) { // Laço de repetição infinito
+    while (1) { // LaÃ§o de repetiÃ§Ã£o infinito
         printf("%s", pergunta);
-        if (fgets(buf, sizeof(buf), stdin) == NULL) return minimo; // Mesma coisa do de cima, verifica se falhar, retorna o mínimo
+        if (fgets(buf, sizeof(buf), stdin) == NULL) return minimo; // Mesma coisa do de cima, verifica se falhar, retorna o mÃ­nimo
 
         for (int i = 0; buf[i] != '\0'; i++) // For normal
-            if (buf[i] == ',' || buf[i] == '.') buf[i] = sep; // Procura onde está a vírgula ou o ponto e substitui pelo separador padrão do seu computador
+            if (buf[i] == ',' || buf[i] == '.') buf[i] = sep; // Procura onde estÃ¡ a vÃ­rgula ou o ponto e substitui pelo separador padrÃ£o do seu computador
 
-        valor = (float) strtod(buf, &fim); // Transforma em float e faz o *fim apontar para o último caractere (strtod não tem nos slides)
-        if (fim == buf || (*fim != '\n' && *fim != '\0')) {  // Verifica se o fim está apontando para um caractere válido
-            printf("  Valor inválido. Digite apenas números.\n");
+        valor = (float) strtod(buf, &fim); // Transforma em float e faz o *fim apontar para o Ãºltimo caractere (strtod nÃ£o tem nos slides)
+        if (fim == buf || (*fim != '\n' && *fim != '\0')) {  // Verifica se o fim estÃ¡ apontando para um caractere vÃ¡lido
+            printf("  Valor invÃ¡lido. Digite apenas nÃºmeros.\n");
             continue;
         }
-        if (valor < minimo) { // Verifica se não é um número menor que o aceitável
+        if (valor < minimo) { // Verifica se nÃ£o Ã© um nÃºmero menor que o aceitÃ¡vel
             printf("  O valor deve ser maior ou igual a %.2f.\n", minimo);
             continue;
         }
-        return valor; // Se estiver tudo certo, ele retorna o número convertido para float nesta variável
+        return valor; // Se estiver tudo certo, ele retorna o nÃºmero convertido para float nesta variÃ¡vel
     }
 }
 
 int lerOpcao(const char *pergunta, int min, int max) {
-    char buf[32]; // Vetor temporário
-    char *fim; // Usado para fazer a conversão de novo
-    long v; // Onde vai ser armazenada a opção
+    char buf[32]; // Vetor temporÃ¡rio
+    char *fim; // Usado para fazer a conversÃ£o de novo
+    long v; // Onde vai ser armazenada a opÃ§Ã£o
 
     while (1) {
         printf("%s", pergunta);
-        if (fgets(buf, sizeof(buf), stdin) == NULL) return min; // Retorna valor mínimo de segurança se der erro
-        v = strtol(buf, &fim, 10); // Tenta transformar em decimal (esse 10 significa literalmente decimal - strtol não tem nos slides)
-        if (fim == buf || (*fim != '\n' && *fim != '\0') || v < min || v > max) { // Verificação rápida se o número é válido
-            printf("  Opção inválida. Digite um número de %d a %d.\n", min, max);
+        if (fgets(buf, sizeof(buf), stdin) == NULL) return min; // Retorna valor mÃ­nimo de seguranÃ§a se der erro
+        v = strtol(buf, &fim, 10); // Tenta transformar em decimal (esse 10 significa literalmente decimal - strtol nÃ£o tem nos slides)
+        if (fim == buf || (*fim != '\n' && *fim != '\0') || v < min || v > max) { // VerificaÃ§Ã£o rÃ¡pida se o nÃºmero Ã© vÃ¡lido
+            printf("  OpÃ§Ã£o invÃ¡lida. Digite um nÃºmero de %d a %d.\n", min, max);
             continue;
         }
-        return (int) v; // Se estiver tudo certo, coloca a opção aqui
+        return (int) v; // Se estiver tudo certo, coloca a opÃ§Ã£o aqui
     }
 }
 
 void pausar(void) {
-    char buf[8]; // Vetor temporário para o usuário colocar o enter
+    char buf[8]; // Vetor temporÃ¡rio para o usuÃ¡rio colocar o enter
     printf("\nPressione ENTER para continuar...");
-    fgets(buf, sizeof(buf), stdin); // Não tem nenhuma verificação para ver se é um enter mesmo
+    fgets(buf, sizeof(buf), stdin); // NÃ£o tem nenhuma verificaÃ§Ã£o para ver se Ã© um enter mesmo
 }
 
 
@@ -275,137 +275,137 @@ void pausar(void) {
 
  // MATERIAIS //
 
-void listarMateriais(const Projeto *p);   /* protótipo: a função é definida mais abaixo, mas é usada aqui */
+void listarMateriais(const Projeto *p);   /* protÃ³tipo: a funÃ§Ã£o Ã© definida mais abaixo, mas Ã© usada aqui */
 
 /* ---------------------------------------------------------------
  * reaproveitarMaterial: cria um material NOVO no projeto copiando os dados de base
- * (nome, marca, cor, tipo, preço total e quantidade total) de um material JÁ cadastrado
- * no mesmo projeto. Só a "quantidade usada" é perguntada de novo.
- * Exemplo: o mesmo novelo rosa usado na cabeça (20 g) e no corpo (35 g).
+ * (nome, marca, cor, tipo, preÃ§o total e quantidade total) de um material JÃ cadastrado
+ * no mesmo projeto. SÃ³ a "quantidade usada" Ã© perguntada de novo.
+ * Exemplo: o mesmo novelo rosa usado na cabeÃ§a (20 g) e no corpo (35 g).
  *
  * COMO O C COPIA AS STRINGS:
- *   - Em C, um texto é um vetor de char terminado em '\0'. Não dá para copiar vetor com
- *     "=": escrever novo->nome = origem->nome é ERRO de compilação, porque o nome de um
- *     vetor é um endereço fixo, não uma variável que aceita atribuição.
- *   - strcpy(destino, origem) copia caractere por caractere, do primeiro até o '\0' (o '\0'
- *     também é copiado). Depois disso, destino e origem têm o mesmo texto, mas em
- *     lugares DIFERENTES da memória: mudar um não muda o outro.
- *   - strcpy NÃO confere o tamanho do destino. Aqui é seguro porque origem e destino
- *     são o mesmo campo (nome, marca, cor) de duas variáveis Material, ambos com
- *     TAM_NOME caracteres, e o texto de origem já cabia lá.
- *   - tipo, precoTotal e qtdTotal são números (int/float), não strings. Para eles
- *     usamos a atribuição normal "=", que copia o valor. (strcpy só serve para texto.)
+ *   - Em C, um texto Ã© um vetor de char terminado em '\0'. NÃ£o dÃ¡ para copiar vetor com
+ *     "=": escrever novo->nome = origem->nome Ã© ERRO de compilaÃ§Ã£o, porque o nome de um
+ *     vetor Ã© um endereÃ§o fixo, nÃ£o uma variÃ¡vel que aceita atribuiÃ§Ã£o.
+ *   - strcpy(destino, origem) copia caractere por caractere, do primeiro atÃ© o '\0' (o '\0'
+ *     tambÃ©m Ã© copiado). Depois disso, destino e origem tÃªm o mesmo texto, mas em
+ *     lugares DIFERENTES da memÃ³ria: mudar um nÃ£o muda o outro.
+ *   - strcpy NÃƒO confere o tamanho do destino. Aqui Ã© seguro porque origem e destino
+ *     sÃ£o o mesmo campo (nome, marca, cor) de duas variÃ¡veis Material, ambos com
+ *     TAM_NOME caracteres, e o texto de origem jÃ¡ cabia lÃ¡.
+ *   - tipo, precoTotal e qtdTotal sÃ£o nÃºmeros (int/float), nÃ£o strings. Para eles
+ *     usamos a atribuiÃ§Ã£o normal "=", que copia o valor. (strcpy sÃ³ serve para texto.)
  *
  * PONTEIROS:
- *   - 'p' é o endereço do projeto (passagem por referência): o material novo é gravado
- *     DENTRO do projeto original, não em uma cópia.
- *   - 'origem' aponta para o material escolhido (&p->materiais[n - 1]) e é const,
- *     pois só será lido. 'novo' aponta para o próximo espaço livre do vetor de materiais
- *     (&p->materiais[p->numMat]) e é por onde escrevemos.
- *   - Retorna 1 se criou o material, 0 se o usuário cancelou.
+ *   - 'p' Ã© o endereÃ§o do projeto (passagem por referÃªncia): o material novo Ã© gravado
+ *     DENTRO do projeto original, nÃ£o em uma cÃ³pia.
+ *   - 'origem' aponta para o material escolhido (&p->materiais[n - 1]) e Ã© const,
+ *     pois sÃ³ serÃ¡ lido. 'novo' aponta para o prÃ³ximo espaÃ§o livre do vetor de materiais
+ *     (&p->materiais[p->numMat]) e Ã© por onde escrevemos.
+ *   - Retorna 1 se criou o material, 0 se o usuÃ¡rio cancelou.
  * --------------------------------------------------------------- */
 int reaproveitarMaterial(Projeto *p) {
     listarMateriais(p);
-    int n = lerOpcao("Número do material a reaproveitar (0 cancela): ", 0, p->numMat);
+    int n = lerOpcao("NÃºmero do material a reaproveitar (0 cancela): ", 0, p->numMat);
     if (n == 0) return 0;
 
-    const Material *origem = &p->materiais[n - 1];   /* a lista começa em 1, o vetor em 0 */
-    Material *novo = &p->materiais[p->numMat];       /* próximo espaço livre */
+    const Material *origem = &p->materiais[n - 1];   /* a lista comeÃ§a em 1, o vetor em 0 */
+    Material *novo = &p->materiais[p->numMat];       /* prÃ³ximo espaÃ§o livre */
 
-    strcpy(novo->nome,  origem->nome);               /* texto: strcpy copia até o '\0' */
+    strcpy(novo->nome,  origem->nome);               /* texto: strcpy copia atÃ© o '\0' */
     strcpy(novo->marca, origem->marca);
     strcpy(novo->cor,   origem->cor);
-    novo->tipo       = origem->tipo;                 /* números: atribuição simples */
+    novo->tipo       = origem->tipo;                 /* nÃºmeros: atribuiÃ§Ã£o simples */
     novo->precoTotal = origem->precoTotal;
     novo->qtdTotal   = origem->qtdTotal;
 
     printf("\nReaproveitando: %s | %s | %s\n", novo->nome, novo->marca, novo->cor);
 
-    /* Única informação pedida: quanto deste material vai na peça atual */
+    /* Ãšnica informaÃ§Ã£o pedida: quanto deste material vai na peÃ§a atual */
     if (novo->tipo == UNIDADE)
-        novo->qtdUsada = lerNumero("Quantas unidades usou nesta peça? ", 0);
+        novo->qtdUsada = lerNumero("Quantas unidades usou nesta peÃ§a? ", 0);
     else
-        novo->qtdUsada = lerNumero("Gramas usadas nesta peça: ", 0);
+        novo->qtdUsada = lerNumero("Gramas usadas nesta peÃ§a: ", 0);
 
     if (novo->qtdUsada > novo->qtdTotal)
-        printf("  Aviso: a quantidade usada é maior que a do pacote (vai custar mais de 1 pacote).\n");
+        printf("  Aviso: a quantidade usada Ã© maior que a do pacote (vai custar mais de 1 pacote).\n");
 
-    p->numMat++;               /* só agora o material "passa a existir" no projeto */
-    printf("Material adicionado! Custo na peça: R$ %.2f\n", custoMaterial(novo));
+    p->numMat++;               /* sÃ³ agora o material "passa a existir" no projeto */
+    printf("Material adicionado! Custo na peÃ§a: R$ %.2f\n", custoMaterial(novo));
     return 1;
 }
 
  void adicionarMaterial(Projeto *p) {
-    /* p->numMat é quantos materiais já existem no projeto */
+    /* p->numMat Ã© quantos materiais jÃ¡ existem no projeto */
     if (p->numMat >= MAX_MAT) {
         printf("Limite de materiais atingido (%d).\n", MAX_MAT);
         return;
     }
 
-    /* Novo ou reaproveitar? A opção de reaproveitar só aparece se o projeto já tem material */
+    /* Novo ou reaproveitar? A opÃ§Ã£o de reaproveitar sÃ³ aparece se o projeto jÃ¡ tem material */
     if (p->numMat > 0) {
-        printf("\nO que deseja fazer?\n 1 - Cadastrar material novo\n 2 - Reaproveitar material já cadastrado neste projeto\n");
+        printf("\nO que deseja fazer?\n 1 - Cadastrar material novo\n 2 - Reaproveitar material jÃ¡ cadastrado neste projeto\n");
         if (lerOpcao("Escolha: ", 1, 2) == 2) {
             reaproveitarMaterial(p);
-            return;            /* o material já foi criado por reaproveitarMaterial */
+            return;            /* o material jÃ¡ foi criado por reaproveitarMaterial */
         }
     }
 
-    /* ATALHO: m aponta para o próximo espaço livre de materiais.
+    /* ATALHO: m aponta para o prÃ³ximo espaÃ§o livre de materiais.
        Daqui para baixo, "m->" significa "o material novo". */
 
     Material *m = &p->materiais[p->numMat];
 
     printf("\n--- NOVO MATERIAL ---\n");
-    lerTexto("Nome (ex: Fio Amigurumi Chenille): ", m->nome, TAM_NOME); // Joga para a função lerTexto os parâmetros que estão no ()
+    lerTexto("Nome (ex: Fio Amigurumi Chenille): ", m->nome, TAM_NOME); // Joga para a funÃ§Ã£o lerTexto os parÃ¢metros que estÃ£o no ()
     lerTexto("Marca: ", m->marca, TAM_NOME);
     lerTexto("Cor: ", m->cor, TAM_NOME);
 
-    printf("Como o material é vendido?\n 1 - Por unidade (olhos, botões...)\n 2 - Por grama (linha, enchimento...)\n");
+    printf("Como o material Ã© vendido?\n 1 - Por unidade (olhos, botÃµes...)\n 2 - Por grama (linha, enchimento...)\n");
     m->tipo = lerOpcao("Escolha: ", 1, 2);
 
-    m->precoTotal = lerNumero("Preço total pago no pacote/rolo (R$): ", 0.01f);
+    m->precoTotal = lerNumero("PreÃ§o total pago no pacote/rolo (R$): ", 0.01f);
 
     if (m->tipo == UNIDADE)
-        m->qtdTotal = lerNumero("Quantas unidades vêm no pacote? ", 1);
+        m->qtdTotal = lerNumero("Quantas unidades vÃªm no pacote? ", 1);
     else
         m->qtdTotal = lerNumero("Peso total do pacote/novelo (g): ", 1);
 
     if (m->tipo == UNIDADE) {
-        m->qtdUsada = lerNumero("Quantas unidades usou na peça? ", 0);
+        m->qtdUsada = lerNumero("Quantas unidades usou na peÃ§a? ", 0);
     } else {
         printf("Como informar a quantidade usada?\n 1 - Digitar direto (g)\n 2 - Pesar o que sobrou do novelo\n");
         int modo = lerOpcao("Escolha: ", 1, 2);
         if (modo == 1) {
-            m->qtdUsada = lerNumero("Gramas usadas na peça: ", 0);
+            m->qtdUsada = lerNumero("Gramas usadas na peÃ§a: ", 0);
         } else {
-            float sobra = lerNumero("Peso que sobrou após o trabalho (g): ", 0);
+            float sobra = lerNumero("Peso que sobrou apÃ³s o trabalho (g): ", 0);
             m->qtdUsada = m->qtdTotal - sobra;
             if (m->qtdUsada < 0) {
-                printf("  A sobra é maior que o peso total! Considerando 0 g usados.\n");
+                printf("  A sobra Ã© maior que o peso total! Considerando 0 g usados.\n");
                 m->qtdUsada = 0;
             }
-            printf("  Você gastou %.1f g.\n", m->qtdUsada);
+            printf("  VocÃª gastou %.1f g.\n", m->qtdUsada);
         }
     }
 
     if (m->qtdUsada > m->qtdTotal)
-        printf("  Aviso: a quantidade usada é maior que a do pacote (vai custar mais de 1 pacote).\n");
+        printf("  Aviso: a quantidade usada Ã© maior que a do pacote (vai custar mais de 1 pacote).\n");
 
-    /* só agora o material "passa a existir" para o projeto */
+    /* sÃ³ agora o material "passa a existir" para o projeto */
     p->numMat++;
-    printf("Material adicionado! Custo na peça: R$ %.2f\n", custoMaterial(m));
+    printf("Material adicionado! Custo na peÃ§a: R$ %.2f\n", custoMaterial(m));
 }
 
-/* Mostra UM material na tela. Recebe só o endereço (const: apenas lê, não altera). */
+/* Mostra UM material na tela. Recebe sÃ³ o endereÃ§o (const: apenas lÃª, nÃ£o altera). */
 void mostrarMaterial(const Material *m, int numero) {
     printf("%2d) %s | %s | %s\n", numero, m->nome, m->marca, m->cor);
     printf("    pacote: R$ %.2f por %.1f %s | usado: %.1f %s | custo: R$ %.2f\n",
            m->precoTotal, m->qtdTotal, m->tipo == UNIDADE ? "un" : "g",
-           m->qtdUsada,   m->tipo == UNIDADE ? "un" : "g", /* A sintaxe do Operador Ternário não existe nos slides (teria que usar if/else).
-                                                              A Mágica do Operador Ternário (? :): Repare no trecho m->tipo == UNIDADE
-                                                              ? "un" : "g". O operador == verifica a igualdade. O que vem depois é um if/else
-                                                              compactado: "Se o tipo for igual a UNIDADE, imprima o texto 'un'. Se não for, imprima 'g'."*/
+           m->qtdUsada,   m->tipo == UNIDADE ? "un" : "g", /* A sintaxe do Operador TernÃ¡rio nÃ£o existe nos slides (teria que usar if/else).
+                                                              A MÃ¡gica do Operador TernÃ¡rio (? :): Repare no trecho m->tipo == UNIDADE
+                                                              ? "un" : "g". O operador == verifica a igualdade. O que vem depois Ã© um if/else
+                                                              compactado: "Se o tipo for igual a UNIDADE, imprima o texto 'un'. Se nÃ£o for, imprima 'g'."*/
            custoMaterial(m));
 }
 
@@ -425,7 +425,7 @@ void removerMaterial(Projeto *p) {
     listarMateriais(p);
     if (p->numMat == 0) return;
 
-    int n = lerOpcao("Número do material a remover (0 cancela): ", 0, p->numMat); // Atribuindo uma função para a variável
+    int n = lerOpcao("NÃºmero do material a remover (0 cancela): ", 0, p->numMat); // Atribuindo uma funÃ§Ã£o para a variÃ¡vel
     if (n == 0) return;
     n--;
 
@@ -440,15 +440,15 @@ void removerMaterial(Projeto *p) {
 void informarTrabalho(Projeto *p) {
     printf("\n--- TRABALHO E LUCRO ---\n");
     p->horas = lerNumero("Horas trabalhadas (ex: 6,5): ", 0);
-    p->valorHora = lerNumero("Quanto você cobra por hora (R$): ", 0);
-    p->lucroPct = lerNumero("Porcentagem de lucro desejada (%): ", 0); /* o texto vai por "%s", então um único % aparece normalmente */
+    p->valorHora = lerNumero("Quanto vocÃª cobra por hora (R$): ", 0);
+    p->lucroPct = lerNumero("Porcentagem de lucro desejada (%): ", 0); /* o texto vai por "%s", entÃ£o um Ãºnico % aparece normalmente */
 
     printf("Dados salvos!\n");
 }
 
 void cadastrarProjeto(Projeto *p) {
     printf("\n--- DADOS DO PROJETO ---\n");
-    lerTextoObrigatorio("Nome do projeto (ex: Ursinho Narigudo): ", p->nome, TAM_NOME); /* não aceita vazio */
+    lerTextoObrigatorio("Nome do projeto (ex: Ursinho Narigudo): ", p->nome, TAM_NOME); /* nÃ£o aceita vazio */
     lerTexto("Agulha utilizada (ex: 2,5mm): ", p->agulha, sizeof(p->agulha));
 
     printf("Tamanho dos pontos:\n 1 - Apertado\n 2 - Normal\n 3 - Solto\n");
@@ -466,11 +466,11 @@ void adicionarParte(Projeto *p) {
         return;
     }
 
-    /* Atalho: pt aponta para a próxima parte livre */
+    /* Atalho: pt aponta para a prÃ³xima parte livre */
     Parte *pt = &p->partes[p->numPartes];
 
     printf("\n--- NOVA PARTE DA RECEITA ---\n");
-    lerTextoObrigatorio("Nome da parte (ex: Cabeça, Braço, Corpinho): ", pt->nome, TAM_NOME); /* não aceita vazio */
+    lerTextoObrigatorio("Nome da parte (ex: CabeÃ§a, BraÃ§o, Corpinho): ", pt->nome, TAM_NOME); /* nÃ£o aceita vazio */
     pt->numPassos = 0;
 
     printf("Como deseja escrever esta parte da receita?\n");
@@ -481,26 +481,26 @@ void adicionarParte(Projeto *p) {
     if (formato == 2) {
         /* ---------------------------------------------------------------
          * RECEITA EM BLOCO DE TEXTO
-         *   - 'passos' é uma matriz: cada LINHA é uma string de TAM_PASSO caracteres.
-         *     pt->passos[0] é a PRIMEIRA linha, ou seja, o endereço de um vetor de char.
-         *   - O texto inteiro é gravado nessa linha 0 (o fgets dentro de lerTextoObrigatorio
-         *     escreve direto nesse endereço) e numPassos vira 1: para o resto do programa
-         *     (relatório, remoção...) a parte é "uma receita com 1 passo", que é o bloco.
-         *     Essa contagem é só interna: o usuário não vê esse número na mensagem final.
-         *   - O laço de carreiras é IGNORADO: o programa pula direto para o fim da função.
+         *   - 'passos' Ã© uma matriz: cada LINHA Ã© uma string de TAM_PASSO caracteres.
+         *     pt->passos[0] Ã© a PRIMEIRA linha, ou seja, o endereÃ§o de um vetor de char.
+         *   - O texto inteiro Ã© gravado nessa linha 0 (o fgets dentro de lerTextoObrigatorio
+         *     escreve direto nesse endereÃ§o) e numPassos vira 1: para o resto do programa
+         *     (relatÃ³rio, remoÃ§Ã£o...) a parte Ã© "uma receita com 1 passo", que Ã© o bloco.
+         *     Essa contagem Ã© sÃ³ interna: o usuÃ¡rio nÃ£o vÃª esse nÃºmero na mensagem final.
+         *   - O laÃ§o de carreiras Ã© IGNORADO: o programa pula direto para o fim da funÃ§Ã£o.
          *   - Limite: o texto precisa caber em TAM_PASSO (200) caracteres, incluindo o
          *     '\0'. O fgets corta o que passar disso.
          * --------------------------------------------------------------- */
-        printf("Digite o tutorial desta parte em uma única linha (máx. %d caracteres):\n", TAM_PASSO - 1);
+        printf("Digite o tutorial desta parte em uma Ãºnica linha (mÃ¡x. %d caracteres):\n", TAM_PASSO - 1);
         lerTextoObrigatorio("  Texto: ", pt->passos[0], TAM_PASSO);
         pt->numPassos = 1;
     } else {
         printf("Digite os passos (carreira por carreira). Deixe vazio e ENTER para terminar.\n");
-        printf("Ex: \"1ª carr.: 8 pb. no anel mágico\"  ou  \"Coloque os olhos entre as carr. 10 e 11\"\n");
+        printf("Ex: \"1Âª carr.: 8 pb. no anel mÃ¡gico\"  ou  \"Coloque os olhos entre as carr. 10 e 11\"\n");
 
         while (pt->numPassos < MAX_PASSOS) {
             char prompt[32];
-            sprintf(prompt, "  Passo %d: ", pt->numPassos + 1); // sprintf formata a string e grava no vetor (Não consta nos slides)
+            sprintf(prompt, "  Passo %d: ", pt->numPassos + 1); // sprintf formata a string e grava no vetor (NÃ£o consta nos slides)
             lerTexto(prompt, pt->passos[pt->numPassos], TAM_PASSO);
             if (pt->passos[pt->numPassos][0] == '\0') break;
             pt->numPassos++;
@@ -521,11 +521,11 @@ void removerParte(Projeto *p) {
     for (i = 0; i < p->numPartes; i++)
         printf("%2d) %s (%d passos)\n", i + 1, p->partes[i].nome, p->partes[i].numPassos);
 
-    int n = lerOpcao("Número da parte a remover (0 cancela): ", 0, p->numPartes);
+    int n = lerOpcao("NÃºmero da parte a remover (0 cancela): ", 0, p->numPartes);
     if (n == 0) return;
     n--;
 
-    /* A struct inteira (nome + passos) é copiada de uma vez */
+    /* A struct inteira (nome + passos) Ã© copiada de uma vez */
     for (i = n; i < p->numPartes - 1; i++)
         p->partes[i] = p->partes[i + 1];
 
@@ -533,15 +533,15 @@ void removerParte(Projeto *p) {
     printf("Parte removida.\n");
 }
 
-void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf em arquivos txt não consta nos slides
+void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf em arquivos txt nÃ£o consta nos slides
     int i, j, k;
 
     fprintf(f, "\n==================================================\n");
-    fprintf(f, "              PRECIFICAÇÃO DE AMIGURUMI\n");
+    fprintf(f, "              PRECIFICAÃ‡ÃƒO DE AMIGURUMI\n");
     fprintf(f, "==================================================\n");
     fprintf(f, "Projeto : %s\n", p->nome[0] ? p->nome : "(sem nome)");
-    fprintf(f, "Agulha  : %s\n", p->agulha[0] ? p->agulha : "(não informada)");
-    fprintf(f, "Pontos  : %s\n", p->tamPontos[0] ? p->tamPontos : "(não informado)");
+    fprintf(f, "Agulha  : %s\n", p->agulha[0] ? p->agulha : "(nÃ£o informada)");
+    fprintf(f, "Pontos  : %s\n", p->tamPontos[0] ? p->tamPontos : "(nÃ£o informado)");
 
     fprintf(f, "\n---------------- MATERIAIS ----------------\n");
     if (p->numMat == 0) fprintf(f, "(nenhum material)\n");
@@ -555,7 +555,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf e
     }
 
     fprintf(f, "\n---------------- RECEITA ----------------\n");
-    if (p->numPartes == 0) fprintf(f, "(receita não informada)\n");
+    if (p->numPartes == 0) fprintf(f, "(receita nÃ£o informada)\n");
     for (j = 0; j < p->numPartes; j++) {
         const Parte *pt = &p->partes[j];
         fprintf(f, "\n%s:\n", pt->nome);
@@ -563,7 +563,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf e
             fprintf(f, "  %2d. %s\n", k + 1, pt->passos[k]);
     }
 
-    fprintf(f, "\n---------------- PRECIFICAÇÃO ----------------\n");
+    fprintf(f, "\n---------------- PRECIFICAÃ‡ÃƒO ----------------\n");
     fprintf(f, "Materiais ............... R$ %8.2f\n", custoTotalMateriais(p));
     fprintf(f, "Horas trabalhadas ....... %.2f h x R$ %.2f = R$ %.2f\n",
             p->horas, p->valorHora, custoMaoDeObra(p));
@@ -571,14 +571,14 @@ void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf e
             custoTotalMateriais(p) + custoMaoDeObra(p));
     fprintf(f, "Lucro (%.1f%%) ............ R$ %8.2f\n", p->lucroPct, valorLucro(p));
     fprintf(f, "==================================================\n");
-    fprintf(f, "PREÇO FINAL ............. R$ %8.2f\n", precoFinal(p));
+    fprintf(f, "PREÃ‡O FINAL ............. R$ %8.2f\n", precoFinal(p));
     fprintf(f, "==================================================\n");
 }
 
 /*
  * Gera um nome seguro para o arquivo usando o nome do projeto.
- * Caracteres acentuados em UTF-8 são preservados; caracteres proibidos
- * em nomes de arquivos são substituídos por "_".
+ * Caracteres acentuados em UTF-8 sÃ£o preservados; caracteres proibidos
+ * em nomes de arquivos sÃ£o substituÃ­dos por "_".
  */
 void nomeSeguroArquivo(const char *origem, char *destino, int tam) {
     int i, j = 0;
@@ -598,7 +598,7 @@ void nomeSeguroArquivo(const char *origem, char *destino, int tam) {
     else destino[j] = '\0';
 }
 
-/* Cada salvamento cria um arquivo novo; nunca sobrescreve relatórios anteriores. */
+/* Cada salvamento cria um arquivo novo; nunca sobrescreve relatÃ³rios anteriores. */
 void salvarRelatorio(const Projeto *p) {
     char nomeProjeto[TAM_NOME * 2];
     char nomeArq[TAM_NOME * 2 + 40];
@@ -622,147 +622,147 @@ void salvarRelatorio(const Projeto *p) {
     }
 
     if (f == NULL) {
-        printf("Não foi possível criar um novo arquivo de relatório.\n");
+        printf("NÃ£o foi possÃ­vel criar um novo arquivo de relatÃ³rio.\n");
         return;
     }
 
     imprimirRelatorio(f, p);
     fclose(f);
-    printf("Relatório salvo em \"%s\"!\n", nomeArq);
+    printf("RelatÃ³rio salvo em \"%s\"!\n", nomeArq);
 }
 
 
 /* ==========================================================
- *  SALVAR E CARREGAR INFORMAÇÕES (arquivo binário dados.bin)
- *  Para o usuário aparece só "Salvar" e "Carregar informações":
- *  o nome do arquivo e o formato ficam escondidos dentro do código.
+ *  SALVAR E CARREGAR INFORMAÃ‡Ã•ES (arquivo binÃ¡rio dados.bin)
+ *  Para o usuÃ¡rio aparece sÃ³ "Salvar" e "Carregar informaÃ§Ãµes":
+ *  o nome do arquivo e o formato ficam escondidos dentro do cÃ³digo.
  * ========================================================== */
 
 /* ---------------------------------------------------------------
  * FORMATO DO ARQUIVO dados.bin:
  *      [ int: quantidade de projetos ][ projeto 0 ][ projeto 1 ] ... [ projeto n-1 ]
- * Gravamos só os 'n' projetos em uso (não os 50 espaços), e o contador vai na frente
+ * Gravamos sÃ³ os 'n' projetos em uso (nÃ£o os 50 espaÃ§os), e o contador vai na frente
  * para que o carregamento saiba quantos projetos ler.
- * IMPORTANTE: arquivos dados.bin da versão anterior (um único projeto, sem contador)
- * NÃO são compatíveis. O programa detecta e avisa; basta apagar o dados.bin antigo.
+ * IMPORTANTE: arquivos dados.bin da versÃ£o anterior (um Ãºnico projeto, sem contador)
+ * NÃƒO sÃ£o compatÃ­veis. O programa detecta e avisa; basta apagar o dados.bin antigo.
  * --------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------
  * salvarDados: grava os 'n' primeiros projetos do vetor em "dados.bin".
  *
- * LÓGICA DOS PONTEIROS (passagem por referência):
- *   - "const Projeto *v" recebe o ENDEREÇO do primeiro elemento do vetor 'projetos'
+ * LÃ“GICA DOS PONTEIROS (passagem por referÃªncia):
+ *   - "const Projeto *v" recebe o ENDEREÃ‡O do primeiro elemento do vetor 'projetos'
  *     (quem chamou escreveu salvarDados(projetos, numProjetos): o nome de um vetor,
- *     sem colchetes, já é o endereço do elemento 0, por isso sem '&'). Nenhuma cópia
- *     dos ~3,3 MB é feita: a função enxerga o vetor original pelo endereço.
- *   - 'const' promete que a função só LÊ os projetos (gravar em disco não os altera).
- *   - 'n' vem por VALOR (uma cópia do número): a função só precisa ler quantos são.
- *   - "FILE *f" é um ponteiro para uma estrutura interna da biblioteca que controla
- *     o arquivo aberto (posição atual, buffer, etc.).
+ *     sem colchetes, jÃ¡ Ã© o endereÃ§o do elemento 0, por isso sem '&'). Nenhuma cÃ³pia
+ *     dos ~3,3 MB Ã© feita: a funÃ§Ã£o enxerga o vetor original pelo endereÃ§o.
+ *   - 'const' promete que a funÃ§Ã£o sÃ³ LÃŠ os projetos (gravar em disco nÃ£o os altera).
+ *   - 'n' vem por VALOR (uma cÃ³pia do nÃºmero): a funÃ§Ã£o sÃ³ precisa ler quantos sÃ£o.
+ *   - "FILE *f" Ã© um ponteiro para uma estrutura interna da biblioteca que controla
+ *     o arquivo aberto (posiÃ§Ã£o atual, buffer, etc.).
  *   - fwrite(&n, sizeof(int), 1, f): grava o contador. Aqui precisamos do '&', porque
- *     'n' é uma variável simples e o fwrite pede o ENDEREÇO de onde os bytes começam.
+ *     'n' Ã© uma variÃ¡vel simples e o fwrite pede o ENDEREÃ‡O de onde os bytes comeÃ§am.
  *   - fwrite(v, sizeof(Projeto), n, f): grava 'n' projetos de uma vez.
- *        1º arg: endereço onde os bytes começam (v, que já é endereço);
- *        2º arg: tamanho em bytes de cada item (sizeof(Projeto));
- *        3º arg: quantos itens gravar (n projetos, que estão lado a lado na memória);
- *        4º arg: o arquivo de destino (f).
+ *        1Âº arg: endereÃ§o onde os bytes comeÃ§am (v, que jÃ¡ Ã© endereÃ§o);
+ *        2Âº arg: tamanho em bytes de cada item (sizeof(Projeto));
+ *        3Âº arg: quantos itens gravar (n projetos, que estÃ£o lado a lado na memÃ³ria);
+ *        4Âº arg: o arquivo de destino (f).
  *     Retorna quantos itens conseguiu gravar: se != n, deu erro.
- *   - "wb" = write binary: cria o arquivo (ou apaga o conteúdo anterior).
+ *   - "wb" = write binary: cria o arquivo (ou apaga o conteÃºdo anterior).
  * --------------------------------------------------------------- */
 int salvarDados(const Projeto *v, int n) {
     FILE *f = fopen(ARQ_BINARIO, "wb");
     if (f == NULL) {
-        printf("Não foi possível salvar as informações.\n");
+        printf("NÃ£o foi possÃ­vel salvar as informaÃ§Ãµes.\n");
         return 0;
     }
 
-    size_t okContador = fwrite(&n, sizeof(int), 1, f);      /* 1º: quantos projetos existem */
-    size_t gravados   = fwrite(v, sizeof(Projeto), n, f);   /* 2º: os n projetos, de uma vez */
+    size_t okContador = fwrite(&n, sizeof(int), 1, f);      /* 1Âº: quantos projetos existem */
+    size_t gravados   = fwrite(v, sizeof(Projeto), n, f);   /* 2Âº: os n projetos, de uma vez */
     fclose(f);
 
     if (okContador != 1 || gravados != (size_t) n) {
-        printf("Não foi possível salvar as informações.\n");
+        printf("NÃ£o foi possÃ­vel salvar as informaÃ§Ãµes.\n");
         return 0;
     }
-    printf("Informações salvas com sucesso!\n");
+    printf("InformaÃ§Ãµes salvas com sucesso!\n");
     return 1;
 }
 
 /* ---------------------------------------------------------------
- * carregarDados: lê "dados.bin" e preenche o vetor de projetos.
+ * carregarDados: lÃª "dados.bin" e preenche o vetor de projetos.
  *
- * LÓGICA DOS PONTEIROS (passagem por referência):
- *   - "Projeto *v" (SEM const) é o endereço do vetor 'projetos': a função precisa
+ * LÃ“GICA DOS PONTEIROS (passagem por referÃªncia):
+ *   - "Projeto *v" (SEM const) Ã© o endereÃ§o do vetor 'projetos': a funÃ§Ã£o precisa
  *     ESCREVER nele. Tudo que for feito em v[i] altera o vetor global de verdade.
- *   - "int *n" é o ENDEREÇO da variável 'numProjetos'. Se passássemos só o valor
- *     (int n), a função mudaria uma cópia e o main continuaria achando que existem 0
- *     projetos. Com o endereço, "*n = cont;" grava o novo valor DENTRO de numProjetos.
- *     (O '*' na frente de n significa "o conteúdo apontado por n".)
- *   - fread(&cont, sizeof(int), 1, f): lê o contador para a variável 'cont'
- *     (por isso o '&': o 1º argumento é o endereço onde os bytes lidos serão COLOCADOS).
- *   - fread(tmp, sizeof(Projeto), cont, f): lê 'cont' projetos para o vetor temporário
- *     'tmp'. Só depois de validar tudo copiamos para v. Assim um arquivo corrompido
- *     nunca estraga os dados que já estão na memória.
- *   - 'tmp' é 'static': fica na área de dados fixa, e não na pilha, pois tem ~3,3 MB.
- *   - "rb" = read binary. Se o arquivo não existe (primeira execução), fopen devolve
- *     NULL e a função apenas retorna 0, sem erro.
- *   - 'silencioso' = 1 evita mensagens quando for a carga automática do início.
+ *   - "int *n" Ã© o ENDEREÃ‡O da variÃ¡vel 'numProjetos'. Se passÃ¡ssemos sÃ³ o valor
+ *     (int n), a funÃ§Ã£o mudaria uma cÃ³pia e o main continuaria achando que existem 0
+ *     projetos. Com o endereÃ§o, "*n = cont;" grava o novo valor DENTRO de numProjetos.
+ *     (O '*' na frente de n significa "o conteÃºdo apontado por n".)
+ *   - fread(&cont, sizeof(int), 1, f): lÃª o contador para a variÃ¡vel 'cont'
+ *     (por isso o '&': o 1Âº argumento Ã© o endereÃ§o onde os bytes lidos serÃ£o COLOCADOS).
+ *   - fread(tmp, sizeof(Projeto), cont, f): lÃª 'cont' projetos para o vetor temporÃ¡rio
+ *     'tmp'. SÃ³ depois de validar tudo copiamos para v. Assim um arquivo corrompido
+ *     nunca estraga os dados que jÃ¡ estÃ£o na memÃ³ria.
+ *   - 'tmp' Ã© 'static': fica na Ã¡rea de dados fixa, e nÃ£o na pilha, pois tem ~3,3 MB.
+ *   - "rb" = read binary. Se o arquivo nÃ£o existe (primeira execuÃ§Ã£o), fopen devolve
+ *     NULL e a funÃ§Ã£o apenas retorna 0, sem erro.
+ *   - 'silencioso' = 1 evita mensagens quando for a carga automÃ¡tica do inÃ­cio.
  * --------------------------------------------------------------- */
 int carregarDados(Projeto *v, int *n, int silencioso) {
-    static Projeto tmp[MAX_PROJETOS];   /* área temporária para receber os bytes do arquivo */
+    static Projeto tmp[MAX_PROJETOS];   /* Ã¡rea temporÃ¡ria para receber os bytes do arquivo */
     FILE *f = fopen(ARQ_BINARIO, "rb");
     int cont, i, j;
 
     if (f == NULL) {
-        if (!silencioso) printf("Ainda não há informações salvas para carregar.\n");
+        if (!silencioso) printf("Ainda nÃ£o hÃ¡ informaÃ§Ãµes salvas para carregar.\n");
         return 0;
     }
 
-    /* 1º: o contador. Um valor fora de 0..MAX_PROJETOS indica arquivo de outra versão ou corrompido */
+    /* 1Âº: o contador. Um valor fora de 0..MAX_PROJETOS indica arquivo de outra versÃ£o ou corrompido */
     if (fread(&cont, sizeof(int), 1, f) != 1 || cont < 0 || cont > MAX_PROJETOS) {
         fclose(f);
-        printf("Não foi possível carregar as informações salvas. Nada foi alterado.\n");
+        printf("NÃ£o foi possÃ­vel carregar as informaÃ§Ãµes salvas. Nada foi alterado.\n");
         return 0;
     }
 
-    /* 2º: os projetos. Se vierem menos bytes que o esperado, o arquivo está incompleto */
+    /* 2Âº: os projetos. Se vierem menos bytes que o esperado, o arquivo estÃ¡ incompleto */
     if (fread(tmp, sizeof(Projeto), cont, f) != (size_t) cont) {
         fclose(f);
-        printf("Não foi possível carregar as informações salvas. Nada foi alterado.\n");
+        printf("NÃ£o foi possÃ­vel carregar as informaÃ§Ãµes salvas. Nada foi alterado.\n");
         return 0;
     }
     fclose(f);
 
-    /* Validação básica: contadores fora do limite indicariam arquivo corrompido */
+    /* ValidaÃ§Ã£o bÃ¡sica: contadores fora do limite indicariam arquivo corrompido */
     for (i = 0; i < cont; i++) {
         if (tmp[i].numMat < 0 || tmp[i].numMat > MAX_MAT ||
             tmp[i].numPartes < 0 || tmp[i].numPartes > MAX_PARTES) {
-            printf("Não foi possível carregar as informações salvas. Nada foi alterado.\n");
+            printf("NÃ£o foi possÃ­vel carregar as informaÃ§Ãµes salvas. Nada foi alterado.\n");
             return 0;
         }
         for (j = 0; j < tmp[i].numPartes; j++) {
             if (tmp[i].partes[j].numPassos < 0 || tmp[i].partes[j].numPassos > MAX_PASSOS) {
-                printf("Não foi possível carregar as informações salvas. Nada foi alterado.\n");
+                printf("NÃ£o foi possÃ­vel carregar as informaÃ§Ãµes salvas. Nada foi alterado.\n");
                 return 0;
             }
         }
     }
 
     for (i = 0; i < cont; i++)
-        v[i] = tmp[i];                 /* atribuição de struct: copia todos os campos (inclusive os vetores de char) */
-    *n = cont;                         /* grava DENTRO de numProjetos, pelo endereço recebido */
+        v[i] = tmp[i];                 /* atribuiÃ§Ã£o de struct: copia todos os campos (inclusive os vetores de char) */
+    *n = cont;                         /* grava DENTRO de numProjetos, pelo endereÃ§o recebido */
 
-    if (!silencioso) printf("Informações carregadas com sucesso!\n");
+    if (!silencioso) printf("InformaÃ§Ãµes carregadas com sucesso!\n");
     return 1;
 }
 
 
-/* Exclui um projeto da lista e ajusta o índice do projeto atual. */
+/* Exclui um projeto da lista e ajusta o Ã­ndice do projeto atual. */
 void removerProjeto(int *atual) {
     int i, escolha, confirmar;
 
     if (numProjetos == 0) {
-        printf("\nNão há projetos cadastrados para excluir.\n");
+        printf("\nNÃ£o hÃ¡ projetos cadastrados para excluir.\n");
         return;
     }
 
@@ -771,14 +771,14 @@ void removerProjeto(int *atual) {
         printf("%2d) %s%s\n", i + 1, projetos[i].nome,
                i == *atual ? "   <- atual" : "");
 
-    escolha = lerOpcao("Número do projeto a excluir (0 cancela): ", 0, numProjetos);
+    escolha = lerOpcao("NÃºmero do projeto a excluir (0 cancela): ", 0, numProjetos);
     if (escolha == 0) return;
 
     printf("Tem certeza de que deseja excluir o projeto \"%s\"?\n",
            projetos[escolha - 1].nome);
-    confirmar = lerOpcao(" 1 - Sim, excluir\n 2 - Não, voltar: ", 1, 2);
+    confirmar = lerOpcao(" 1 - Sim, excluir\n 2 - NÃ£o, voltar: ", 1, 2);
     if (confirmar == 2) {
-        printf("Exclusão cancelada.\n");
+        printf("ExclusÃ£o cancelada.\n");
         return;
     }
 
@@ -797,7 +797,7 @@ void removerProjeto(int *atual) {
         (*atual)--;
     }
 
-    printf("Projeto excluído com sucesso.\n");
+    printf("Projeto excluÃ­do com sucesso.\n");
     salvarDados(projetos, numProjetos);
 }
 
@@ -807,8 +807,8 @@ void removerProjeto(int *atual) {
  * ========================================================== */
 
 /*
- * Converte letras ASCII e letras maiúsculas acentuadas do UTF-8 para minúsculas.
- * Mantém os acentos, mas permite comparar "CAFÉ" com "café".
+ * Converte letras ASCII e letras maiÃºsculas acentuadas do UTF-8 para minÃºsculas.
+ * MantÃ©m os acentos, mas permite comparar "CAFÃ‰" com "cafÃ©".
  */
 void textoMinusculoUTF8(const char *origem, char *destino, int tam) {
     int i = 0, j = 0;
@@ -823,11 +823,11 @@ void textoMinusculoUTF8(const char *origem, char *destino, int tam) {
             unsigned char seguinte = (unsigned char) origem[i + 1];
             char base = '\0';
 
-            /* Converte maiúsculas latinas para minúsculas antes de retirar o acento. */
+            /* Converte maiÃºsculas latinas para minÃºsculas antes de retirar o acento. */
             if (seguinte >= 0x80 && seguinte <= 0x9E && seguinte != 0x97)
                 seguinte = (unsigned char) (seguinte + 0x20);
 
-            /* Assim, "acucar" e "açúcar" também encontram o mesmo material. */
+            /* Assim, "acucar" e "aÃ§Ãºcar" tambÃ©m encontram o mesmo material. */
             if (seguinte >= 0xA0 && seguinte <= 0xA5) base = 'a';
             else if (seguinte == 0xA7) base = 'c';
             else if (seguinte >= 0xA8 && seguinte <= 0xAB) base = 'e';
@@ -849,7 +849,7 @@ void textoMinusculoUTF8(const char *origem, char *destino, int tam) {
             i += 2;
         } else if (c == 0xC5 && origem[i + 1] != '\0' &&
                    (unsigned char) origem[i + 1] == 0xB8 && j + 2 < tam) {
-            /* Ÿ/ÿ -> y */
+            /* ÂŸ/Ã¿ -> y */
             destino[j++] = 'y';
             i += 2;
         } else {
@@ -860,7 +860,7 @@ void textoMinusculoUTF8(const char *origem, char *destino, int tam) {
     destino[j] = '\0';
 }
 
-/* Pesquisa trecho sem diferenciar maiúsculas/minúsculas, preservando acentos. */
+/* Pesquisa trecho sem diferenciar maiÃºsculas/minÃºsculas, preservando acentos. */
 int contemTexto(const char *texto, const char *trecho) {
     char t1[TAM_NOME], t2[TAM_NOME];
 
@@ -872,8 +872,8 @@ int contemTexto(const char *texto, const char *trecho) {
 
 /*
  * Pesquisa sequencial: percorre os materiais cadastrados, um por um,
- * comparando o campo escolhido com o trecho informado pelo usuário.
- * Não exige que o vetor esteja ordenado.
+ * comparando o campo escolhido com o trecho informado pelo usuÃ¡rio.
+ * NÃ£o exige que o vetor esteja ordenado.
  * Complexidade: O(n), pois no pior caso verifica todos os materiais.
  */
 void pesquisarSequencial(const Projeto *p) {
@@ -940,7 +940,7 @@ void menuReceita(Projeto *p) {
     int op;
     do {
         printf("\n=== RECEITA ===\n");
-        printf(" 1 - Adicionar parte (cabeça, braço...)\n 2 - Remover parte\n 0 - Voltar\n");
+        printf(" 1 - Adicionar parte (cabeÃ§a, braÃ§o...)\n 2 - Remover parte\n 0 - Voltar\n");
         op = lerOpcao("Escolha: ", 0, 2);
         if (op == 1) adicionarParte(p);
         else if (op == 2) removerParte(p);
@@ -948,25 +948,25 @@ void menuReceita(Projeto *p) {
 }
 
 /* ---------------------------------------------------------------
- * selecionarProjeto: lista os projetos do vetor, deixa o usuário ESCOLHER qual
- * projeto passa a ser o atual ou CRIAR um novo. Devolve o índice do projeto atual.
+ * selecionarProjeto: lista os projetos do vetor, deixa o usuÃ¡rio ESCOLHER qual
+ * projeto passa a ser o atual ou CRIAR um novo. Devolve o Ã­ndice do projeto atual.
  *
- * COMO O NOVO PROJETO É ALOCADO NO VETOR:
- *   - O vetor 'projetos' já existe inteiro na memória (alocação estática, veja o
- *     comentário no topo). "Criar" um projeto, portanto, é apenas USAR o próximo
- *     espaço livre, o índice 'numProjetos':
- *        1) projetos[numProjetos] = projetoVazio;   -> atribuição de struct: copia todos
- *           os campos do projeto zerado para o espaço, limpando qualquer lixo anterior;
- *        2) cadastrarProjeto(&projetos[numProjetos]) -> passa o ENDEREÇO do espaço livre;
- *           a função preenche o projeto lá dentro (passagem por referência);
- *        3) numProjetos++ -> só agora o projeto "passa a existir" (a mesma ideia do
+ * COMO O NOVO PROJETO Ã‰ ALOCADO NO VETOR:
+ *   - O vetor 'projetos' jÃ¡ existe inteiro na memÃ³ria (alocaÃ§Ã£o estÃ¡tica, veja o
+ *     comentÃ¡rio no topo). "Criar" um projeto, portanto, Ã© apenas USAR o prÃ³ximo
+ *     espaÃ§o livre, o Ã­ndice 'numProjetos':
+ *        1) projetos[numProjetos] = projetoVazio;   -> atribuiÃ§Ã£o de struct: copia todos
+ *           os campos do projeto zerado para o espaÃ§o, limpando qualquer lixo anterior;
+ *        2) cadastrarProjeto(&projetos[numProjetos]) -> passa o ENDEREÃ‡O do espaÃ§o livre;
+ *           a funÃ§Ã£o preenche o projeto lÃ¡ dentro (passagem por referÃªncia);
+ *        3) numProjetos++ -> sÃ³ agora o projeto "passa a existir" (a mesma ideia do
  *           numMat++ em adicionarMaterial).
- *   - O limite é checado antes: com MAX_PROJETOS projetos, a opção "novo" nem aparece.
- *   - Os índices do vetor começam em 0, mas a lista mostrada ao usuário começa em 1;
- *     por isso "op - 1" converte a escolha na posição do vetor.
+ *   - O limite Ã© checado antes: com MAX_PROJETOS projetos, a opÃ§Ã£o "novo" nem aparece.
+ *   - Os Ã­ndices do vetor comeÃ§am em 0, mas a lista mostrada ao usuÃ¡rio comeÃ§a em 1;
+ *     por isso "op - 1" converte a escolha na posiÃ§Ã£o do vetor.
  *
- * NUMERAÇÃO NA LISTA: 1..numProjetos são os projetos, numProjetos + 1 é "novo projeto"
- * e 0 é "voltar ao menu principal" (agora aparece na lista e avisa que voltou).
+ * NUMERAÃ‡ÃƒO NA LISTA: 1..numProjetos sÃ£o os projetos, numProjetos + 1 Ã© "novo projeto"
+ * e 0 Ã© "voltar ao menu principal" (agora aparece na lista e avisa que voltou).
  * --------------------------------------------------------------- */
 int selecionarProjeto(int atual) {
     int i, op, max;
@@ -989,19 +989,19 @@ int selecionarProjeto(int atual) {
     }
 
     if (op == numProjetos + 1) {                     /* escolheu "novo projeto" */
-        projetos[numProjetos] = projetoVazio;        /* 1) limpa o espaço livre */
-        cadastrarProjeto(&projetos[numProjetos]);    /* 2) preenche pelo endereço */
+        projetos[numProjetos] = projetoVazio;        /* 1) limpa o espaÃ§o livre */
+        cadastrarProjeto(&projetos[numProjetos]);    /* 2) preenche pelo endereÃ§o */
         numProjetos++;                               /* 3) passa a existir */
-        return numProjetos - 1;                      /* o novo é o último da lista */
+        return numProjetos - 1;                      /* o novo Ã© o Ãºltimo da lista */
     }
 
     return op - 1;
 }
 
-/* Devolve 1 se há um projeto escolhido; senão avisa e devolve 0. */
+/* Devolve 1 se hÃ¡ um projeto escolhido; senÃ£o avisa e devolve 0. */
 int exigeProjeto(int atual) {
     if (atual < 0) {
-        printf("\nNenhum projeto selecionado. Use a opção 1 para escolher ou cadastrar um projeto.\n");
+        printf("\nNenhum projeto selecionado. Use a opÃ§Ã£o 1 para escolher ou cadastrar um projeto.\n");
         return 0;
     }
     return 1;
@@ -1009,15 +1009,15 @@ int exigeProjeto(int atual) {
 
 int main(void) {
     int op;
-    int atual = -1;   /* índice (posição no vetor 'projetos') do projeto em uso; -1 = nenhum */
+    int atual = -1;   /* Ã­ndice (posiÃ§Ã£o no vetor 'projetos') do projeto em uso; -1 = nenhum */
 
       /* ACENTOS NO TERMINAL
-       Tenta o locale "Portuguese" (Windows); se não existir (Linux/Mac),
-       usa o locale do sistema. Também define a vírgula como separador decimal. */
+       Tenta o locale "Portuguese" (Windows); se nÃ£o existir (Linux/Mac),
+       usa o locale do sistema. TambÃ©m define a vÃ­rgula como separador decimal. */
     setlocale(LC_ALL, "");
 #ifdef _WIN32
-    /* Entrada do teclado em Windows-1252; saída do terminal em UTF-8.
-       lerLinhaUTF8 converte o texto digitado antes de armazená-lo. */
+    /* Entrada do teclado em Windows-1252; saÃ­da do terminal em UTF-8.
+       lerLinhaUTF8 converte o texto digitado antes de armazenÃ¡-lo. */
     SetConsoleCP(1252);
     SetConsoleOutputCP(CP_UTF8);
 #endif
@@ -1025,38 +1025,38 @@ int main(void) {
     printf("========================================================================\n");
     printf("                    BEM-VINDA AO AGULHA & CONTA!\n");
     printf("\n");
-    printf("        O MELHOR SISTEMA DE PRECIFICAÇÃO DE AMIGURUMIS DO MUNDO!\n");
+    printf("        O MELHOR SISTEMA DE PRECIFICAÃ‡ÃƒO DE AMIGURUMIS DO MUNDO!\n");
     printf("========================================================================\n");
 
-    /* Carga automática ao iniciar (silenciosa). Passamos DOIS endereços:
-         projetos      -> o nome do vetor já é o endereço do elemento 0 (sem '&');
-         &numProjetos  -> endereço da variável contadora, para a função poder alterá-la.
-       carregarDados preenche as duas variáveis globais diretamente (passagem por referência). */
+    /* Carga automÃ¡tica ao iniciar (silenciosa). Passamos DOIS endereÃ§os:
+         projetos      -> o nome do vetor jÃ¡ Ã© o endereÃ§o do elemento 0 (sem '&');
+         &numProjetos  -> endereÃ§o da variÃ¡vel contadora, para a funÃ§Ã£o poder alterÃ¡-la.
+       carregarDados preenche as duas variÃ¡veis globais diretamente (passagem por referÃªncia). */
     if (carregarDados(projetos, &numProjetos, 1))
-        atual = (numProjetos > 0) ? 0 : -1;   /* já deixa o primeiro projeto selecionado */
+        atual = (numProjetos > 0) ? 0 : -1;   /* jÃ¡ deixa o primeiro projeto selecionado */
 
-    do { // Laço Do/While não consta nos slides
+    do { // LaÃ§o Do/While nÃ£o consta nos slides
         printf("\n=========== MENU PRINCIPAL ===========\n");
         if (atual >= 0) printf("Projeto atual: %s\n", projetos[atual].nome);
-        else            printf("Projeto atual: (nenhum - use a opção 1)\n");
+        else            printf("Projeto atual: (nenhum - use a opÃ§Ã£o 1)\n");
         printf(" 1 - Escolher ou cadastrar projeto\n");
         printf(" 2 - Dados do projeto atual (nome, agulha, pontos)\n");
         printf(" 3 - Materiais\n");
         printf(" 4 - Receita (partes e passos)\n");
         printf(" 5 - Horas, valor da hora e lucro\n");
-        printf(" 6 - Ver precificação final\n");
-        printf(" 7 - Salvar relatório em arquivo .txt\n");
+        printf(" 6 - Ver precificaÃ§Ã£o final\n");
+        printf(" 7 - Salvar relatÃ³rio em arquivo .txt\n");
         printf(" 8 - Pesquisar material\n");
         printf(" 9 - Salvar\n");
-        printf("10 - Carregar informações\n");
+        printf("10 - Carregar informaÃ§Ãµes\n");
         printf("11 - Excluir projeto\n");
         printf(" 0 - Sair\n");
         op = lerOpcao("Escolha: ", 0, 11);
 
-        /* &projetos[atual] = endereço do projeto escolhido dentro do vetor
-           (equivale a projetos + atual). As funções recebem só esse endereço, então
-           alteram o projeto ORIGINAL do vetor, e não uma cópia. */
-        switch (op) { // Estrutura switch/case não consta nos slides
+        /* &projetos[atual] = endereÃ§o do projeto escolhido dentro do vetor
+           (equivale a projetos + atual). As funÃ§Ãµes recebem sÃ³ esse endereÃ§o, entÃ£o
+           alteram o projeto ORIGINAL do vetor, e nÃ£o uma cÃ³pia. */
+        switch (op) { // Estrutura switch/case nÃ£o consta nos slides
             case 1: atual = selecionarProjeto(atual);        break;
             case 2: if (exigeProjeto(atual)) cadastrarProjeto(&projetos[atual]);   break; /* edita o projeto atual */
             case 3: if (exigeProjeto(atual)) menuMateriais(&projetos[atual]);      break;
@@ -1065,14 +1065,14 @@ int main(void) {
             case 6: if (exigeProjeto(atual)) { imprimirRelatorio(stdout, &projetos[atual]); pausar(); } break;
             case 7: if (exigeProjeto(atual)) salvarRelatorio(&projetos[atual]);    break;
             case 8: if (exigeProjeto(atual)) menuPesquisa(&projetos[atual]);       break;
-            case 9: salvarDados(projetos, numProjetos);      break; /* só lê o vetor (const): passa o vetor e a quantidade */
+            case 9: salvarDados(projetos, numProjetos);      break; /* sÃ³ lÃª o vetor (const): passa o vetor e a quantidade */
             case 10:
-                /* escreve no vetor e em numProjetos, por isso passa os endereços */
+                /* escreve no vetor e em numProjetos, por isso passa os endereÃ§os */
                 if (carregarDados(projetos, &numProjetos, 0))
-                    atual = (numProjetos > 0) ? 0 : -1;      /* o índice antigo pode não existir mais */
+                    atual = (numProjetos > 0) ? 0 : -1;      /* o Ã­ndice antigo pode nÃ£o existir mais */
                 break;
             case 11: removerProjeto(&atual);
-            case 0: printf("\nObrigada por utilizar! Boas vendas!Alé logo!\n");                 break;
+            case 0: printf("\nObrigada por utilizar! Boas vendas!AlÃ© logo!\n");                 break;
         }
     } while (op != 0);
 
