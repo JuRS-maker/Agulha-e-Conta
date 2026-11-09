@@ -218,7 +218,7 @@ Como a `struct Projeto` não tem ponteiros dentro dela, cada projeto ocupa um bl
 
 ## 👩‍💻 Autoras
 
-- **[Nome da integrante 1]**
-- **[Nome da integrante 2]**
+- **Ana Vitória Bernardes de Aguiar**
+- **Júlia Ribeiro de Souza**
 
 Projeto final da disciplina de **Linguagem de Programação**, 2026.
