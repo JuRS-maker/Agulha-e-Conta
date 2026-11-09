@@ -19,13 +19,13 @@ typedef struct {
     int   tipo;          /* UNIDADE ou GRAMA            */
     float precoTotal;    /* quanto pagou no pacote/rolo */
     float qtdTotal;      /* quanto vem no pacote/rolo   */
-    float qtdUsada;      /* quanto usou na peÁa         */
+    float qtdUsada;      /* quanto usou na pe√ßa         */
 } Material;
 
 typedef struct {
     char nome[TAM_NOME];
     int  numPassos;
-    char passos[MAX_PASSOS][TAM_PASSO];   /* matriz: cada linha È um passo */
+    char passos[MAX_PASSOS][TAM_PASSO];   /* matriz: cada linha √© um passo */
 } Parte;
 
 typedef struct {
@@ -45,10 +45,10 @@ Projeto projeto;
 
 
 /* ==========================================================
- *  C¡LCULOS
+ *  C√ÅLCULOS
  * ========================================================== */
 
-float custoMaterial(const Material *m) { //endereÁo de um Material que a funÁ„o lÍ
+float custoMaterial(const Material *m) { //endere√ßo de um Material que a fun√ß√£o l√™
     return (m->precoTotal / m->qtdTotal) * m->qtdUsada; //acessar o campo do ponteiro
 }
 
@@ -56,7 +56,7 @@ float custoTotalMateriais(const Projeto *p) {
     int i;
     float soma = 0;
     for (i = 0; i < p->numMat; i++){
-      soma = custoMaterial(&p->materiais[i]) + soma;  //Passa o endereÁo do materaial
+      soma = custoMaterial(&p->materiais[i]) + soma;  //Passa o endere√ßo do materaial
     }
     return soma;
 }
@@ -75,7 +75,7 @@ float precoFinal(const Projeto *p) {
 
 
 /* ==========================================================
- *  FUN«’ES AUXILIARES DE LEITURA
+ *  FUN√á√ïES AUXILIARES DE LEITURA
  * ========================================================== */
 
 void lerTexto(const char *pergunta, char *destino, int tam) {
@@ -102,7 +102,7 @@ float lerNumero(const char *pergunta, float minimo) {
 
         valor = (float) strtod(buf, &fim);
         if (fim == buf || (*fim != '\n' && *fim != '\0')) {
-            printf("  Valor inv·lido. Digite apenas n˙meros.\n");
+            printf("  Valor inv√°lido. Digite apenas n√∫meros.\n");
             continue;
         }
         if (valor < minimo) {
@@ -123,7 +123,7 @@ int lerOpcao(const char *pergunta, int min, int max) {
         if (fgets(buf, sizeof(buf), stdin) == NULL) return min;
         v = strtol(buf, &fim, 10);
         if (fim == buf || (*fim != '\n' && *fim != '\0') || v < min || v > max) {
-            printf("  OpÁ„o inv·lida (%d a %d).\n", min, max);
+            printf("  Op√ß√£o inv√°lida (%d a %d).\n", min, max);
             continue;
         }
         return (int) v;
@@ -142,13 +142,13 @@ void pausar(void) {
  * ========================================================== */
 
  void adicionarMaterial(Projeto *p) {
-    /* p->numMat È quantos materiais j· existem no projeto */
+    /* p->numMat √© quantos materiais j√° existem no projeto */
     if (p->numMat >= MAX_MAT) {
         printf("Limite de materiais atingido (%d).\n", MAX_MAT);
         return;
     }
 
-    /* ATALHO: m aponta para o prÛximo espaÁo livre de materiais.
+    /* ATALHO: m aponta para o pr√≥ximo espa√ßo livre de materiais.
        Daqui para baixo, "m->" significa "o material novo". */
     Material *m = &p->materiais[p->numMat];
 
@@ -157,40 +157,40 @@ void pausar(void) {
     lerTexto("Marca: ", m->marca, TAM_NOME);
     lerTexto("Cor: ", m->cor, TAM_NOME);
 
-    printf("Como o material È vendido?\n 1 - Por unidade (olhos, botıes...)\n 2 - Por grama (linha, enchimento...)\n");
+    printf("Como o material √© vendido?\n 1 - Por unidade (olhos, bot√µes...)\n 2 - Por grama (linha, enchimento...)\n");
     m->tipo = lerOpcao("Escolha: ", 1, 2);
 
-    m->precoTotal = lerNumero("PreÁo total pago no pacote/rolo (R$): ", 0.01f);
+    m->precoTotal = lerNumero("Pre√ßo total pago no pacote/rolo (R$): ", 0.01f);
 
     if (m->tipo == UNIDADE)
-        m->qtdTotal = lerNumero("Quantas unidades vÍm no pacote? ", 1);
+        m->qtdTotal = lerNumero("Quantas unidades v√™m no pacote? ", 1);
     else
         m->qtdTotal = lerNumero("Peso total do pacote/novelo (g): ", 1);
 
     if (m->tipo == UNIDADE) {
-        m->qtdUsada = lerNumero("Quantas unidades usou na peÁa? ", 0);
+        m->qtdUsada = lerNumero("Quantas unidades usou na pe√ßa? ", 0);
     } else {
         printf("Como informar a quantidade usada?\n 1 - Digitar direto (g)\n 2 - Pesar o que sobrou do novelo\n");
         int modo = lerOpcao("Escolha: ", 1, 2);
         if (modo == 1) {
-            m->qtdUsada = lerNumero("Gramas usadas na peÁa: ", 0);
+            m->qtdUsada = lerNumero("Gramas usadas na pe√ßa: ", 0);
         } else {
-            float sobra = lerNumero("Peso que sobrou apÛs o trabalho (g): ", 0);
+            float sobra = lerNumero("Peso que sobrou ap√≥s o trabalho (g): ", 0);
             m->qtdUsada = m->qtdTotal - sobra;
             if (m->qtdUsada < 0) {
-                printf("  A sobra È maior que o peso total! Considerando 0 g usados.\n");
+                printf("  A sobra √© maior que o peso total! Considerando 0 g usados.\n");
                 m->qtdUsada = 0;
             }
-            printf("  VocÍ gastou %.1f g.\n", m->qtdUsada);
+            printf("  Voc√™ gastou %.1f g.\n", m->qtdUsada);
         }
     }
 
     if (m->qtdUsada > m->qtdTotal)
-        printf("  Aviso: a quantidade usada È maior que a do pacote (vai custar mais de 1 pacote).\n");
+        printf("  Aviso: a quantidade usada √© maior que a do pacote (vai custar mais de 1 pacote).\n");
 
-    /* sÛ agora o material "passa a existir" para o projeto */
+    /* s√≥ agora o material "passa a existir" para o projeto */
     p->numMat++;
-    printf("Material adicionado! Custo na peÁa: R$ %.2f\n", custoMaterial(m));
+    printf("Material adicionado! Custo na pe√ßa: R$ %.2f\n", custoMaterial(m));
 }
 
 void listarMateriais(const Projeto *p) {
@@ -215,7 +215,7 @@ void removerMaterial(Projeto *p) {
     listarMateriais(p);
     if (p->numMat == 0) return;
 
-    int n = lerOpcao("N˙mero do material a remover (0 cancela): ", 0, p->numMat);
+    int n = lerOpcao("N√∫mero do material a remover (0 cancela): ", 0, p->numMat);
     if (n == 0) return;
     n--;
 
@@ -230,7 +230,7 @@ void removerMaterial(Projeto *p) {
 void informarTrabalho(Projeto *p) {
     printf("\n--- TRABALHO E LUCRO ---\n");
     p->horas = lerNumero("Horas trabalhadas (ex: 6,5): ", 0);
-    p->valorHora = lerNumero("Quanto vocÍ cobra por hora (R$): ", 0);
+    p->valorHora = lerNumero("Quanto voc√™ cobra por hora (R$): ", 0);
     p->lucroPct = lerNumero("Porcentagem de lucro desejada (%): ", 0);
 
     printf("Dados salvos!\n");
@@ -256,15 +256,15 @@ void adicionarParte(Projeto *p) {
         return;
     }
 
-    /* atalho: pt aponta para a prÛxima parte livre */
+    /* atalho: pt aponta para a pr√≥xima parte livre */
     Parte *pt = &p->partes[p->numPartes];
 
     printf("\n--- NOVA PARTE DA RECEITA ---\n");
-    lerTexto("Nome da parte (ex: CabeÁa, BraÁo, Corpinho): ", pt->nome, TAM_NOME);
+    lerTexto("Nome da parte (ex: Cabe√ßa, Bra√ßo, Corpinho): ", pt->nome, TAM_NOME);
     pt->numPassos = 0;
 
     printf("Digite os passos (carreira por carreira). Deixe vazio e ENTER para terminar.\n");
-    printf("Ex: \"1™ carr.: 8 pb. no anel m·gico\"  ou  \"Coloque os olhos entre as carr. 10 e 11\"\n");
+    printf("Ex: \"1¬™ carr.: 8 pb. no anel m√°gico\"  ou  \"Coloque os olhos entre as carr. 10 e 11\"\n");
 
     while (pt->numPassos < MAX_PASSOS) {
         char prompt[32];
@@ -288,11 +288,11 @@ void removerParte(Projeto *p) {
     for (i = 0; i < p->numPartes; i++)
         printf("%2d) %s (%d passos)\n", i + 1, p->partes[i].nome, p->partes[i].numPassos);
 
-    int n = lerOpcao("N˙mero da parte a remover (0 cancela): ", 0, p->numPartes);
+    int n = lerOpcao("N√∫mero da parte a remover (0 cancela): ", 0, p->numPartes);
     if (n == 0) return;
     n--;
 
-    /* a struct inteira (nome + passos) È copiada de uma vez */
+    /* a struct inteira (nome + passos) √© copiada de uma vez */
     for (i = n; i < p->numPartes - 1; i++)
         p->partes[i] = p->partes[i + 1];
 
@@ -304,11 +304,11 @@ void imprimirRelatorio(FILE *f, const Projeto *p) {
     int i, j, k;
 
     fprintf(f, "\n==================================================\n");
-    fprintf(f, "              PRECIFICA«√O DE AMIGURUMI\n");
+    fprintf(f, "              PRECIFICA√á√ÉO DE AMIGURUMI\n");
     fprintf(f, "==================================================\n");
     fprintf(f, "Projeto : %s\n", p->nome[0] ? p->nome : "(sem nome)");
-    fprintf(f, "Agulha  : %s\n", p->agulha[0] ? p->agulha : "(n„o informada)");
-    fprintf(f, "Pontos  : %s\n", p->tamPontos[0] ? p->tamPontos : "(n„o informado)");
+    fprintf(f, "Agulha  : %s\n", p->agulha[0] ? p->agulha : "(n√£o informada)");
+    fprintf(f, "Pontos  : %s\n", p->tamPontos[0] ? p->tamPontos : "(n√£o informado)");
 
     fprintf(f, "\n---------------- MATERIAIS ----------------\n");
     if (p->numMat == 0) fprintf(f, "(nenhum material)\n");
@@ -322,7 +322,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) {
     }
 
     fprintf(f, "\n---------------- RECEITA ----------------\n");
-    if (p->numPartes == 0) fprintf(f, "(receita n„o informada)\n");
+    if (p->numPartes == 0) fprintf(f, "(receita n√£o informada)\n");
     for (j = 0; j < p->numPartes; j++) {
         const Parte *pt = &p->partes[j];
         fprintf(f, "\n%s:\n", pt->nome);
@@ -330,7 +330,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) {
             fprintf(f, "  %2d. %s\n", k + 1, pt->passos[k]);
     }
 
-    fprintf(f, "\n---------------- PRECIFICA«√O ----------------\n");
+    fprintf(f, "\n---------------- PRECIFICA√á√ÉO ----------------\n");
     fprintf(f, "Materiais ............... R$ %8.2f\n", custoTotalMateriais(p));
     fprintf(f, "Horas trabalhadas ....... %.2f h x R$ %.2f = R$ %.2f\n",
             p->horas, p->valorHora, custoMaoDeObra(p));
@@ -338,7 +338,7 @@ void imprimirRelatorio(FILE *f, const Projeto *p) {
             custoTotalMateriais(p) + custoMaoDeObra(p));
     fprintf(f, "Lucro (%.1f%%) ............ R$ %8.2f\n", p->lucroPct, valorLucro(p));
     fprintf(f, "==================================================\n");
-    fprintf(f, "PRE«O FINAL ............. R$ %8.2f\n", precoFinal(p));
+    fprintf(f, "PRE√áO FINAL ............. R$ %8.2f\n", precoFinal(p));
     fprintf(f, "==================================================\n");
 }
 
@@ -346,12 +346,12 @@ void salvarRelatorio(const Projeto *p) {
     char nomeArq[] = "relatorio_croche.txt";
     FILE *f = fopen(nomeArq, "w");
     if (f == NULL) {
-        printf("N„o foi possÌvel criar o arquivo.\n");
+        printf("N√£o foi poss√≠vel criar o arquivo.\n");
         return;
     }
     imprimirRelatorio(f, p);
     fclose(f);
-    printf("RelatÛrio salvo em \"%s\"!\n", nomeArq);
+    printf("Relat√≥rio salvo em \"%s\"!\n", nomeArq);
 }
 
 void menuMateriais(Projeto *p) {
@@ -370,7 +370,7 @@ void menuReceita(Projeto *p) {
     int op;
     do {
         printf("\n=== RECEITA ===\n");
-        printf(" 1 - Adicionar parte (cabeÁa, braÁo...)\n 2 - Remover parte\n 0 - Voltar\n");
+        printf(" 1 - Adicionar parte (cabe√ßa, bra√ßo...)\n 2 - Remover parte\n 0 - Voltar\n");
         op = lerOpcao("Escolha: ", 0, 2);
         if (op == 1) adicionarParte(p);
         else if (op == 2) removerParte(p);
@@ -380,7 +380,7 @@ void menuReceita(Projeto *p) {
 int main(void) {
     int op;
 
-    /* Acentos no terminal: tenta o locale do Windows; se n„o existir
+    /* Acentos no terminal: tenta o locale do Windows; se n√£o existir
        (Linux/Mac), usa o locale do sistema. */
     if (setlocale(LC_ALL, "Portuguese") == NULL)
         setlocale(LC_ALL, "");
@@ -388,7 +388,7 @@ int main(void) {
     printf("========================================================================\n");
     printf("                    BEM-VINDA AO AGULHA & CONTA!\n");
     printf("\n");
-    printf("        O MELHOR SISTEMA DE PRECIFICA«√O DE AMIGURUMIS DO MUNDO!\n");
+    printf("        O MELHOR SISTEMA DE PRECIFICA√á√ÉO DE AMIGURUMIS DO MUNDO!\n");
     printf("========================================================================\n");
 
     do {
@@ -397,8 +397,8 @@ int main(void) {
         printf(" 2 - Materiais\n");
         printf(" 3 - Receita (partes e passos)\n");
         printf(" 4 - Horas, valor da hora e lucro\n");
-        printf(" 5 - Ver precificaÁ„o final\n");
-        printf(" 6 - Salvar relatÛrio em arquivo .txt\n");
+        printf(" 5 - Ver precifica√ß√£o final\n");
+        printf(" 6 - Salvar relat√≥rio em arquivo .txt\n");
         printf(" 0 - Sair\n");
         op = lerOpcao("Escolha: ", 0, 6);
 
@@ -409,7 +409,7 @@ int main(void) {
             case 4: informarTrabalho(&projeto);              break;
             case 5: imprimirRelatorio(stdout, &projeto); pausar(); break;
             case 6: salvarRelatorio(&projeto);               break;
-            case 0: printf("\nAtÈ logo!\n");                 break;
+            case 0: printf("\nAt√© logo!\n");                 break;
         }
         }while(op != 0);
 
