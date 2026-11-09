@@ -2,7 +2,7 @@
 
 > O sistema que calcula quanto cobrar pelo seu amigurumi, sem prejuízo e sem susto.
 
-Aplicação de terminal, escrita em **C**, que ajuda artesãs de crochê a **precificar peças** e a **guardar a receita** (o tutorial) de cada projeto. Trabalho final da disciplina de **Linguagem de Programação**.
+Aplicação de terminal, escrita em **C**, que ajuda artesãs de crochê a **precificar peças**, **guardar a receita** (o tutorial) de cada projeto e **manter todos os projetos salvos** para consultar depois. Trabalho final da disciplina de **Linguagem de Programação**.
 
 ---
 
@@ -22,15 +22,18 @@ O **Agulha & Conta** resolve isso cobrando **só a parte do material que foi rea
 
 | Recurso | O que faz |
 |---|---|
+| 📚 **Vários projetos** | Cadastra, escolhe, edita e exclui projetos (até 50), cada um com nome, agulha e tamanho dos pontos (apertado, normal ou solto) |
 | 🧵 **Materiais** | Cadastra nome, marca, cor, tipo de venda (unidade ou grama), preço do pacote e quantidade usada |
+| ♻️ **Reaproveitar material** | Reutiliza um material já cadastrado no projeto (o mesmo novelo na cabeça e no corpo, por exemplo) e pergunta só a quantidade usada |
 | ⚖️ **Pesagem da sobra** | Para linhas, basta pesar o que sobrou do novelo e o programa calcula quanto foi gasto |
-| 📖 **Receita por partes** | Registra a receita dividida em partes (cabeça, braço, corpinho...), com os passos de cada uma, carreira por carreira |
+| 📖 **Receita por partes** | Registra a receita dividida em partes (cabeça, braço, corpinho...), em **passos enumerados** (carreira por carreira) ou em **bloco de texto corrido** |
 | ⏱️ **Mão de obra e lucro** | Recebe as horas trabalhadas, o valor da hora e a porcentagem de lucro desejada |
 | 🧮 **Precificação final** | Calcula o preço final da peça |
-| 📄 **Relatório** | Mostra na tela e salva em `relatorio_croche.txt` |
-| 📚 **Meus projetos** | Cria, lista, abre e exclui vários projetos, e busca por pedaço do nome |
+| 🔎 **Pesquisa** | Busca materiais por nome, marca ou cor (por trecho, sem diferenciar maiúsculas nem acentos) e busca projetos salvos pelo nome |
+| 💾 **Armazenamento** | Salva todos os projetos em arquivo e os carrega automaticamente ao abrir o programa |
+| 📄 **Relatório** | Mostra na tela e salva em `.txt`, com um arquivo novo a cada salvamento (nunca sobrescreve o anterior) |
 
-Cada projeto também guarda o **nome**, a **agulha** utilizada (2,5 mm, por exemplo) e o **tamanho dos pontos** (apertado, normal ou solto).
+Entradas inválidas são tratadas: textos obrigatórios não aceitam campo vazio, números aceitam **vírgula ou ponto** (`2,5` ou `2.5`) e opções fora do menu pedem nova digitação.
 
 ---
 
@@ -72,7 +75,7 @@ Com **6,5 horas** de trabalho a **R$ 15,00 por hora** e **30% de lucro**:
 
 ```
 ==================================================
-              PRECIFICAÇÃO DE CROCHÊ
+              PRECIFICAÇÃO DE AMIGURUMI
 ==================================================
 Projeto : Ursinho Narigudo
 Agulha  : 2,5mm
@@ -108,60 +111,83 @@ PREÇO FINAL ............. R$   143,52
 **Requisito:** um compilador C, como o `gcc`.
 
 ```bash
-gcc precificacao_croche.c -o croche
-./croche            # no Windows: croche.exe
+gcc Prog_AeC_V8.c -o agulha_conta
+./agulha_conta            # no Windows: agulha_conta.exe
 ```
 
-> 💬 **Acentos no Windows:** o programa usa `setlocale`. Salve o arquivo `.c` como **ANSI (Windows-1252)** para os acentos aparecerem corretamente no terminal. No Linux e no Mac, use UTF-8.
->
-> 🔢 **Números:** você pode digitar decimais com vírgula ou com ponto (`2,5` ou `2.5`).
+> 💬 **Acentos:** se o terminal mostrar símbolos estranhos no lugar de letras acentuadas, confira a codificação do arquivo `.c` e a fonte do terminal (use uma fonte como Consolas).
 
 ---
 
 ## 🧭 Como usar
 
 ```
-MEUS PROJETOS
- 1 - Novo projeto
- 2 - Listar projetos
- 3 - Abrir projeto
- 4 - Excluir projeto
- 5 - Buscar projeto
+MENU PRINCIPAL
+ 1 - Escolher ou cadastrar projeto
+ 2 - Dados do projeto atual (nome, agulha, pontos)
+ 3 - Materiais
+ 4 - Receita (partes e passos)
+ 5 - Horas, valor da hora e lucro
+ 6 - Ver precificação final
+ 7 - Salvar relatório em arquivo .txt
+ 8 - Pesquisar material
+ 9 - Salvar
+10 - Visualizar/pesquisar projetos salvos
+11 - Excluir projeto
  0 - Sair
-
-PROJETO
- 1 - Dados do projeto (nome, agulha, pontos)
- 2 - Materiais
- 3 - Receita (partes e passos)
- 4 - Horas, valor da hora e lucro
- 5 - Ver precificação final
- 6 - Salvar relatório em arquivo .txt
- 0 - Voltar
 ```
 
-Um bom caminho para a primeira peça: **novo projeto → materiais → receita → horas e lucro → ver precificação**.
+Um bom caminho para a primeira peça: **1 (cadastrar projeto) → 3 (materiais) → 4 (receita) → 5 (horas e lucro) → 6 (ver precificação) → 9 (salvar)**.
+
+### Como funciona o armazenamento
+
+- Os projetos ficam no arquivo `dados.bin`, criado na pasta de onde o programa é executado.
+- Ao abrir o programa, os projetos salvos são **carregados automaticamente**.
+- Antes de trocar de projeto ou de consultar os salvos, o programa **pergunta se você quer salvar** o projeto atual.
+- Ao excluir um projeto (com confirmação), o arquivo é atualizado na hora.
+- O relatório `.txt` é diferente do `dados.bin`: é um arquivo de leitura, nomeado `relatorio_<nome do projeto>_001.txt`, `_002.txt` e assim por diante.
+
+> ⚠️ O `dados.bin` só serve para a versão do programa que o criou. Se os limites do código forem alterados, apague o arquivo e cadastre os projetos de novo.
+
+### Limites do sistema
+
+| Item | Limite |
+|---|---|
+| Projetos | 50 |
+| Materiais por projeto | 30 |
+| Partes da receita por projeto | 10 |
+| Passos por parte | 30 |
+| Tamanho de cada passo (ou do bloco de texto) | 2999 caracteres |
 
 ---
 
 ## 🧱 Como o código está organizado
 
-O programa gira em torno de três `struct`:
+O programa gira em torno de três `struct`, e todos os projetos ficam em um vetor global:
 
 ```c
 typedef struct { /* nome, marca, cor, tipo, precoTotal, qtdTotal, qtdUsada */ } Material;
 typedef struct { /* nome, numPassos, passos[MAX_PASSOS][TAM_PASSO] */        } Parte;
 typedef struct { /* nome, agulha, tamPontos, materiais[], partes[],
                     horas, valorHora, lucroPct */                            } Projeto;
+
+Projeto projetos[MAX_PROJETOS];   /* todos os projetos */
+int     numProjetos;              /* quantos estão em uso */
 ```
+
+Como a `struct Projeto` não tem ponteiros dentro dela, cada projeto ocupa um bloco contínuo de memória e pode ser gravado no arquivo com um único `fwrite`.
 
 | Grupo | Funções |
 |---|---|
-| Leitura segura | `lerTexto`, `lerNumero`, `lerOpcao`, `pausar` |
+| Leitura segura | `lerTexto`, `lerTextoObrigatorio`, `lerNumero`, `lerOpcao`, `pausar` |
 | Cálculos | `custoMaterial`, `custoTotalMateriais`, `custoMaoDeObra`, `valorLucro`, `precoFinal` |
-| Cadastros | `cadastrarProjeto`, `adicionarMaterial`, `listarMateriais`, `removerMaterial`, `adicionarParte`, `removerParte`, `informarTrabalho` |
-| Relatório | `imprimirRelatorio`, `salvarRelatorio` |
-| Projetos | `novoProjeto`, `listarProjetos`, `abrirProjeto`, `excluirProjeto`, `buscarProjeto` |
-| Menus | `menuProjetos`, `menuProjeto`, `menuMateriais`, `menuReceita` |
+| Materiais | `adicionarMaterial`, `reaproveitarMaterial`, `mostrarMaterial`, `listarMateriais`, `removerMaterial` |
+| Receita | `adicionarParte`, `removerParte` |
+| Projetos | `cadastrarProjeto`, `informarTrabalho`, `selecionarProjeto`, `exigeProjeto`, `removerProjeto` |
+| Relatório | `imprimirRelatorio`, `nomeSeguroArquivo`, `salvarRelatorio` |
+| Armazenamento | `salvarDados`, `carregarDados`, `perguntarSalvar` |
+| Pesquisa | `textoMinusculoUTF8`, `contemTexto`, `pesquisarSequencial`, `pesquisarProjeto`, `visualizarProjetosSalvos` |
+| Menus | `menuMateriais`, `menuReceita`, `menuPesquisa`, `menuCarregar`, `main` |
 
 ---
 
@@ -169,29 +195,30 @@ typedef struct { /* nome, agulha, tamPontos, materiais[], partes[],
 
 | Conteúdo | Onde aparece |
 |---|---|
-| **Structs** | `Material`, `Parte` e `Projeto` |
-| **Ponteiros** | Funções que recebem `Projeto *p` e `Material *m`; acesso com `->`; uso de `const` nas funções que só leem |
+| **Structs** | `Material`, `Parte` e `Projeto`, com vetores de structs dentro de structs |
+| **Ponteiros** | Funções que recebem `Projeto *p`, `Material *m`, `int *atual` e `FILE *`; acesso com `->`; `const` nas funções que só leem; endereço de elementos do vetor (`&projetos[atual]`) |
 | **Matriz** | `passos[MAX_PASSOS][TAM_PASSO]`: cada linha é um passo da receita |
-| **Strings** | `fgets`, `strcpy`, `strcspn`, `memset`; busca de texto dentro do nome do projeto |
-| **Operações condicionais e lógicas** | `if`/`else`, operador ternário, `&&` e `||` na validação das entradas |
-| **Entrada e saída** | `printf`, `fgets`, `fprintf` e gravação do relatório em arquivo (`fopen`/`fclose`) |
-| **Laços de repetição** | `for` (cálculos e listagens), `while` (leitura dos passos) e `do...while` (menus) |
-| **Busca sequencial** | `buscarProjeto`, que percorre a lista comparando os nomes |
+| **Strings** | `fgets`, `strcpy`, `strcspn`, `strstr`, `sprintf`; comparação de textos sem diferenciar maiúsculas e acentos |
+| **Operações condicionais e lógicas** | `if`/`else`, `switch`, operador ternário, `&&` e `||` na validação das entradas |
+| **Entrada e saída** | `printf`, `fgets`, `fprintf` e arquivos (`fopen`, `fclose`, `fwrite`, `fread`) |
+| **Laços de repetição** | `for` (cálculos, listagens e deslocamento de itens ao remover), `while` (leitura dos passos e validações) e `do...while` (menus) |
+| **Pesquisa sequencial** | `pesquisarSequencial` (materiais) e `pesquisarProjeto` (projetos), que percorrem os itens um por um |
+| **Persistência em arquivo** | Gravação e leitura de todos os projetos em arquivo binário |
 
 ---
 
-## 🛣️ Próximos passos
+## 🛣️ Ideias para o futuro
 
-- [ ] Gravar todos os projetos em arquivo, para não se perderem ao fechar o programa
 - [ ] Ordenar os projetos por nome ou por preço
 - [ ] Busca binária pelo nome exato do projeto
 - [ ] Custo por parte da peça (cabeça, braço, corpinho)
+- [ ] Editar um material já cadastrado, sem precisar remover e adicionar de novo
 
 ---
 
 ## 👩‍💻 Autoras
 
-- **Ana Vitória Bernardes de Aguiar**
-- **Júlia Ribeiro de Souza**
+- **[Nome da integrante 1]**
+- **[Nome da integrante 2]**
 
 Projeto final da disciplina de **Linguagem de Programação**, 2026.
