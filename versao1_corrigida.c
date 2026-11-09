@@ -315,11 +315,11 @@ void removerParte(Projeto *p) {
     p->numPartes--;
     printf("Parte removida.\n");
 }
-
-void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf em arquivos txt não consta nos slides
+                      
+void imprimirRelatorio(FILE *f, const Projeto *p) { // *f -> Variável para armazenar o relatório
     int i, j, k;
 
-    fprintf(f, "\n==================================================\n");
+    fprintf(f, "\n==================================================\n"); // fprintf -> escreve em forma de arquivo
     fprintf(f, "              PRECIFICAÇÃO DE AMIGURUMI\n");
     fprintf(f, "==================================================\n");
     fprintf(f, "Projeto : %s\n", p->nome[0] ? p->nome : "(sem nome)");
@@ -360,13 +360,13 @@ void imprimirRelatorio(FILE *f, const Projeto *p) { // O uso de FILE e fprintf e
 
 void salvarRelatorio(const Projeto *p) {
     char nomeArq[] = "relatorio_croche.txt";
-    FILE *f = fopen(nomeArq, "w"); // fopen para escrita não consta nos slides
+    FILE *f = fopen(nomeArq, "w"); // fopen -> abertura do arquivo | w -> argumento de escrita
     if (f == NULL) {
         printf("Não foi possível criar o arquivo.\n");
         return;
     }
     imprimirRelatorio(f, p);
-    fclose(f); // fclose não consta nos slides
+    fclose(f); // fclose -> fechamento do arquivo
     printf("Relatório salvo em \"%s\"!\n", nomeArq);
 }
 
@@ -407,7 +407,7 @@ int main(void) {
     printf("        O MELHOR SISTEMA DE PRECIFICAÇÃO DE AMIGURUMIS DO MUNDO!\n");
     printf("========================================================================\n");
 
-    do { // Laço Do/While não consta nos slides
+    do { // Laço Do/While -> laço de repetição
         printf("\n=========== MENU PRINCIPAL ===========\n");
         printf(" 1 - Dados do projeto (nome, agulha, pontos)\n");
         printf(" 2 - Materiais\n");
@@ -418,7 +418,7 @@ int main(void) {
         printf(" 0 - Sair\n");
         op = lerOpcao("Escolha: ", 0, 6);
 
-        switch (op) { // Estrutura switch/case não consta nos slides
+        switch (op) { // Estrutura switch/case -> estrutura condicional
             case 1: cadastrarProjeto(&projeto);              break;
             case 2: menuMateriais(&projeto);                 break;
             case 3: menuReceita(&projeto);                   break;
